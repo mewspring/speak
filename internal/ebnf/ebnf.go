@@ -2,23 +2,29 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// TODO: Document how $0, $1, ... is parsed and replaced within production
+// actions.
+
 // Package ebnf is a library for EBNF grammars. The input is text ([]byte)
-// satisfying the following grammar (represented itself in EBNF):
+// satisfying the following grammar (represented itself in EBNF augmented with
+// production actions):
 //
-//	Production  = name "=" [ Expression ] "." .
-//	Expression  = Alternative { "|" Alternative } .
-//	Alternative = Term { Term } .
-//	Term        = name | token [ "…" token ] | Group | Option | Repetition .
-//	Group       = "(" Expression ")" .
-//	Option      = "[" Expression "]" .
-//	Repetition  = "{" Expression "}" .
+//    Production  = name "=" [ Expression ] "." .
+//    Expression  = Alternative { "|" Alternative } .
+//    Alternative = Term { Term } "<<" Action ">>" .
+//    Term        = name | token [ "…" token ] | Group | Option | Repetition .
+//    Group       = "(" Expression ")" .
+//    Option      = "[" Expression "]" .
+//    Repetition  = "{" Expression "}" .
+//    Action      = /* Go source code */ .
 //
 // A name is a Go identifier, a token is a Go string, and comments
 // and white space follow the same rules as for the Go language.
 // Production names starting with an uppercase Unicode letter denote
 // non-terminal productions (i.e., productions which allow white-space
 // and comments between tokens); all other production names denote
-// lexical productions.
+// lexical productions. Production actions, enclosed within "<<" and ">>",
+// contain arbitrary Go source code.
 //
 package ebnf
 

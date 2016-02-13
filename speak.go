@@ -1,5 +1,5 @@
-// speak is an experimental compiler construction playground, written for the µC
-// compiler as a learning experience. Inspired by Gocc, speak generates lexers
+// Speak is an experimental compiler construction playground, written for the µC
+// compiler as a learning experience. Inspired by Gocc, Speak generates lexers
 // and parses from language grammars expressed in EBNF with annotate production
 // actions.
 package main
