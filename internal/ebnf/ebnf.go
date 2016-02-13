@@ -29,7 +29,6 @@
 package ebnf
 
 import (
-	"errors"
 	"fmt"
 	"text/scanner"
 	"unicode"
@@ -59,7 +58,7 @@ func (list errorList) Error() string {
 }
 
 func newError(pos scanner.Position, msg string) error {
-	return errors.New(fmt.Sprintf("%s: %s", pos, msg))
+	return fmt.Errorf("%s: %s", pos, msg)
 }
 
 // ----------------------------------------------------------------------------
@@ -90,7 +89,7 @@ type (
 		String    string
 	}
 
-	// A List node represents a range of characters.
+	// A Range node represents a range of characters.
 	Range struct {
 		Begin, End *Token // begin ... end
 	}
@@ -131,16 +130,35 @@ type (
 	Grammar map[string]*Production
 )
 
+// Pos is the position of the first character of the syntactic construct
 func (x Alternative) Pos() scanner.Position { return x[0].Pos() } // the parser always generates non-empty Alternative
-func (x Sequence) Pos() scanner.Position    { return x[0].Pos() } // the parser always generates non-empty Sequences
-func (x *Name) Pos() scanner.Position       { return x.StringPos }
-func (x *Token) Pos() scanner.Position      { return x.StringPos }
-func (x *Range) Pos() scanner.Position      { return x.Begin.Pos() }
-func (x *Group) Pos() scanner.Position      { return x.Lparen }
-func (x *Option) Pos() scanner.Position     { return x.Lbrack }
+
+// Pos is the position of the first character of the syntactic construct
+func (x Sequence) Pos() scanner.Position { return x[0].Pos() } // the parser always generates non-empty Sequences
+
+// Pos is the position of the first character of the syntactic construct
+func (x *Name) Pos() scanner.Position { return x.StringPos }
+
+// Pos is the position of the first character of the syntactic construct
+func (x *Token) Pos() scanner.Position { return x.StringPos }
+
+// Pos is the position of the first character of the syntactic construct
+func (x *Range) Pos() scanner.Position { return x.Begin.Pos() }
+
+// Pos is the position of the first character of the syntactic construct
+func (x *Group) Pos() scanner.Position { return x.Lparen }
+
+// Pos is the position of the first character of the syntactic construct
+func (x *Option) Pos() scanner.Position { return x.Lbrack }
+
+// Pos is the position of the first character of the syntactic construct
 func (x *Repetition) Pos() scanner.Position { return x.Lbrace }
+
+// Pos is the position of the first character of the syntactic construct
 func (x *Production) Pos() scanner.Position { return x.Name.Pos() }
-func (x *Bad) Pos() scanner.Position        { return x.TokPos }
+
+// Pos is the position of the first character of the syntactic construct
+func (x *Bad) Pos() scanner.Position { return x.TokPos }
 
 // ----------------------------------------------------------------------------
 // Grammar verification
