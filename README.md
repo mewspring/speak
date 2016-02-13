@@ -4,7 +4,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/mewmew/speak/badge.svg?branch=master)](https://coveralls.io/github/mewmew/speak?branch=master)
 [![GoDoc](https://godoc.org/github.com/mewmew/speak?status.svg)](https://godoc.org/github.com/mewmew/speak)
 
-Speak is an experimental compiler construction playground, written for the [µC compiler] as a learning experience. Inspired by [Gocc], Speak generates lexers and parses from language grammars expressed in EBNF with annotate production actions.
+Speak is an experimental compiler construction playground, written for the [µC compiler] as a learning experience. Inspired by [Gocc], Speak generates lexers and parses from language grammars expressed in EBNF with annotated production actions.
 
 The augmented EBNF format is described in the package documentation of the [ebnf] package.
 
