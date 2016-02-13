@@ -1,0 +1,96 @@
+// # Lexical elements
+_letter = "a" … "z" | "A" … "Z" | "_" .
+_digit = "0" … "9" .
+
+int_lit = _digit { _digit } .
+ident = _letter { _letter | _digit } .
+
+// # Syntax
+Program = { TopLevelDecl } .
+
+TopLevelDecl
+	= VarDecl ";"
+	| FuncDecl
+.
+
+VarDecl
+	= ScalarDecl
+	| ArrayDecl
+.
+
+// Follow the path of Clang to solve The Lexer Hack [1]. Do not differentiate
+// between type names and variable names during lexical analysis. Instead, let
+// the semantic analysis stage determine the category of identifiers.
+//
+//    [1]: https://en.wikipedia.org/wiki/The_lexer_hack
+TypeName = ident .
+
+// Note: TypeName refers to "char" or "int" in this case.
+ScalarDecl = TypeName ident .
+
+// Note: TypeName refers to "char" or "int" in this case.
+ArrayDecl = TypeName ident "[" int_lit "]" .
+
+// Note: TypeName refers to "char", "int" or "void" in this case.
+FuncDecl = TypeName ident Params ( ";" | FuncBody ) .
+
+// Note: TypeName refers to "void" in this case.
+Params = "(" ( TypeName | ParamList ) ")" .
+
+ParamList = ParamDecl { "," ParamDecl } .
+
+// Note: TypeName refers to "char" or "int" in this case.
+ParamDecl
+	= ScalarDecl
+	| TypeName ident "[" "]"
+.
+
+FuncBody = "{" { VarDecl ";" } Stmts "}" .
+
+Stmts = { Stmt } .
+
+Stmt
+	= Expr ";"
+	| "return" Expr ";"
+	| "return" ";"
+	| "while" Condition Stmt
+	| "if" Condition Stmt [ "else" Stmt ]
+	| Block
+	| ";"
+.
+
+Block = "{" Stmts "}" .
+
+Condition = "(" Expr ")" .
+
+Expr
+	= int_lit
+	| ident
+	| ident "[" Expr "]"
+	| UnaryOp Expr
+	| Expr BinaryOp Expr
+	| ident "(" [ ExprList ] ")"
+	| "(" Expr ")"
+.
+
+ExprList = Expr { "," Expr } .
+
+UnaryOp
+	= "-"
+	| "!"
+.
+
+BinaryOp
+	= "+"
+	| "-"
+	| "*"
+	| "/"
+	| "<"
+	| ">"
+	| "<="
+	| ">="
+	| "!="
+	| "=="
+	| "&&"
+	| "="
+.
