@@ -13,7 +13,7 @@ import (
 
 	"github.com/kr/pretty"
 	"github.com/mewkiz/pkg/errutil"
-	"golang.org/x/exp/ebnf"
+	"github.com/mewmew/speak/internal/ebnf"
 )
 
 func usage() {

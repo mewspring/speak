@@ -20,7 +20,7 @@
 // and comments between tokens); all other production names denote
 // lexical productions.
 //
-package ebnf // import "golang.org/x/exp/ebnf"
+package ebnf
 
 import (
 	"errors"
