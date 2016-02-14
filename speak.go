@@ -50,7 +50,21 @@ func speak(grammarPath string) error {
 		return errutil.Err(err)
 	}
 
-	pretty.Print(grammar)
+	terms := Terminals(grammar)
+
+	_ = pretty.Print
+
+	//fmt.Println("=== [ Grammar ] ===")
+	//pretty.Println(grammar)
+
+	//fmt.Println("=== [ Terminals ] ===")
+	//pretty.Println(terms)
+
+	fmt.Println("=== [ Regular expressions ] ===")
+	for _, term := range terms {
+		//pretty.Println(term)
+		fmt.Println("term:", RegexpString(grammar, term))
+	}
 
 	return nil
 }

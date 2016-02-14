@@ -184,6 +184,8 @@ func (x *Bad) Pos() scanner.Position {
 // -----------------------------------------------------------------------------
 // Grammar verification
 
+// isLexical reports whether the given production name denotes a lexical
+// production.
 func isLexical(name string) bool {
 	ch, _ := utf8.DecodeRuneInString(name)
 	return !unicode.IsUpper(ch)
