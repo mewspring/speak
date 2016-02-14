@@ -282,12 +282,12 @@ func (v *verifier) verify(grammar Grammar, start string) {
 	// work through the worklist
 	v.push(root)
 	for {
-		n := len(v.worklist) - 1
-		if n < 0 {
+		n := len(v.worklist)
+		if n < 1 {
 			break
 		}
-		prod := v.worklist[n]
-		v.worklist = v.worklist[0:n]
+		prod := v.worklist[n-1]
+		v.worklist = v.worklist[0 : n-1]
 		v.verifyExpr(prod.Expr, isLexical(prod.Name.String))
 	}
 
