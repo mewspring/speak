@@ -18,14 +18,12 @@
 //    Repetition  = "{" Expression "}" .
 //    Action      = /* Go source code */ .
 //
-// A name is a Go identifier, a token is a Go string, and comments
-// and white space follow the same rules as for the Go language.
-// Production names starting with an uppercase Unicode letter denote
-// non-terminal productions (i.e., productions which allow white-space
-// and comments between tokens); all other production names denote
-// lexical productions. Production actions, enclosed within "<<" and ">>",
-// contain arbitrary Go source code.
-//
+// A name is a Go identifier, a token is a Go string, and comments and white
+// space follow the same rules as for the Go language. Production names starting
+// with an uppercase Unicode letter denote non-terminal productions (i.e.,
+// productions which allow white-space and comments between tokens); all other
+// production names denote lexical productions. Production actions, enclosed
+// within "<<" and ">>", contain arbitrary Go source code.
 package ebnf
 
 import (
@@ -35,7 +33,7 @@ import (
 	"unicode/utf8"
 )
 
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Error handling
 
 type errorList []error
@@ -61,17 +59,28 @@ func newError(pos scanner.Position, msg string) error {
 	return fmt.Errorf("%s: %s", pos, msg)
 }
 
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Internal representation
 
 type (
+	// A Grammar is a set of EBNF productions. The map is indexed by production
+	// name.
+	Grammar map[string]*Production
+
 	// An Expression node represents a production expression.
 	Expression interface {
 		// Pos is the position of the first character of the syntactic construct
 		Pos() scanner.Position
 	}
 
-	// An Alternative node represents a non-empty list of alternative expressions.
+	// A Production node represents an EBNF production.
+	Production struct {
+		Name *Name
+		Expr Expression
+	}
+
+	// An Alternative node represents a non-empty list of alternative
+	// expressions.
 	Alternative []Expression // x | y | z
 
 	// A Sequence node represents a non-empty list of sequential expressions.
@@ -112,55 +121,67 @@ type (
 		Body   Expression // {body}
 	}
 
-	// A Production node represents an EBNF production.
-	Production struct {
-		Name *Name
-		Expr Expression
-	}
-
 	// A Bad node stands for pieces of source code that lead to a parse error.
 	Bad struct {
 		TokPos scanner.Position
-		Error  string // parser error message
+		// parser error message
+		Error string
 	}
-
-	// A Grammar is a set of EBNF productions. The map
-	// is indexed by production name.
-	//
-	Grammar map[string]*Production
 )
 
 // Pos is the position of the first character of the syntactic construct
-func (x Alternative) Pos() scanner.Position { return x[0].Pos() } // the parser always generates non-empty Alternative
+func (x *Production) Pos() scanner.Position {
+	return x.Name.Pos()
+}
 
 // Pos is the position of the first character of the syntactic construct
-func (x Sequence) Pos() scanner.Position { return x[0].Pos() } // the parser always generates non-empty Sequences
+func (x Alternative) Pos() scanner.Position {
+	// the parser always generates non-empty Alternative
+	return x[0].Pos()
+}
 
 // Pos is the position of the first character of the syntactic construct
-func (x *Name) Pos() scanner.Position { return x.StringPos }
+func (x Sequence) Pos() scanner.Position {
+	// the parser always generates non-empty Sequences
+	return x[0].Pos()
+}
 
 // Pos is the position of the first character of the syntactic construct
-func (x *Token) Pos() scanner.Position { return x.StringPos }
+func (x *Name) Pos() scanner.Position {
+	return x.StringPos
+}
 
 // Pos is the position of the first character of the syntactic construct
-func (x *Range) Pos() scanner.Position { return x.Begin.Pos() }
+func (x *Token) Pos() scanner.Position {
+	return x.StringPos
+}
 
 // Pos is the position of the first character of the syntactic construct
-func (x *Group) Pos() scanner.Position { return x.Lparen }
+func (x *Range) Pos() scanner.Position {
+	return x.Begin.Pos()
+}
 
 // Pos is the position of the first character of the syntactic construct
-func (x *Option) Pos() scanner.Position { return x.Lbrack }
+func (x *Group) Pos() scanner.Position {
+	return x.Lparen
+}
 
 // Pos is the position of the first character of the syntactic construct
-func (x *Repetition) Pos() scanner.Position { return x.Lbrace }
+func (x *Option) Pos() scanner.Position {
+	return x.Lbrack
+}
 
 // Pos is the position of the first character of the syntactic construct
-func (x *Production) Pos() scanner.Position { return x.Name.Pos() }
+func (x *Repetition) Pos() scanner.Position {
+	return x.Lbrace
+}
 
 // Pos is the position of the first character of the syntactic construct
-func (x *Bad) Pos() scanner.Position { return x.TokPos }
+func (x *Bad) Pos() scanner.Position {
+	return x.TokPos
+}
 
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Grammar verification
 
 func isLexical(name string) bool {
@@ -171,8 +192,9 @@ func isLexical(name string) bool {
 type verifier struct {
 	errors   errorList
 	worklist []*Production
-	reached  Grammar // set of productions reached from (and including) the root production
-	grammar  Grammar
+	// set of productions reached from (and including) the root production
+	reached Grammar
+	grammar Grammar
 }
 
 func (v *verifier) error(pos scanner.Position, msg string) {
@@ -210,15 +232,15 @@ func (v *verifier) verifyExpr(expr Expression, lexical bool) {
 			v.verifyExpr(e, lexical)
 		}
 	case *Name:
-		// a production with this name must exist;
-		// add it to the worklist if not yet processed
+		// a production with this name must exist; add it to the worklist if not
+		// yet processed
 		if prod, found := v.grammar[x.String]; found {
 			v.push(prod)
 		} else {
 			v.error(x.Pos(), "missing production "+x.String)
 		}
-		// within a lexical production references
-		// to non-lexical productions are invalid
+		// within a lexical production references to non-lexical productions are
+		// invalid
 		if lexical && !isLexical(x.String) {
 			v.error(x.Pos(), "reference to non-lexical production "+x.String)
 		}
@@ -228,7 +250,7 @@ func (v *verifier) verifyExpr(expr Expression, lexical bool) {
 		i := v.verifyChar(x.Begin)
 		j := v.verifyChar(x.End)
 		if i >= j {
-			v.error(x.Pos(), "decreasing character range")
+			v.error(x.Pos(), "non-increasing character range")
 		}
 	case *Group:
 		v.verifyExpr(x.Body, lexical)
@@ -285,7 +307,6 @@ func (v *verifier) verify(grammar Grammar, start string) {
 //	- lexical productions refer only to other lexical productions
 //
 // Position information is interpreted relative to the file set fset.
-//
 func Verify(grammar Grammar, start string) error {
 	var v verifier
 	v.verify(grammar, start)

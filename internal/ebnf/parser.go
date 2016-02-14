@@ -13,9 +13,12 @@ import (
 type parser struct {
 	errors  errorList
 	scanner scanner.Scanner
-	pos     scanner.Position // token position
-	tok     rune             // one token look-ahead
-	lit     string           // token literal
+	// token position
+	pos scanner.Position
+	// one token look-ahead
+	tok rune
+	// token literal
+	lit string
 }
 
 func (p *parser) next() {
@@ -31,8 +34,8 @@ func (p *parser) error(pos scanner.Position, msg string) {
 func (p *parser) errorExpected(pos scanner.Position, msg string) {
 	msg = `expected "` + msg + `"`
 	if pos.Offset == p.pos.Offset {
-		// the error happened at the current position;
-		// make the error message more specific
+		// the error happened at the current position; make the error message more
+		// specific
 		msg += ", found " + scanner.TokenString(p.tok)
 		if p.tok < 0 {
 			msg += " " + p.lit
@@ -46,7 +49,10 @@ func (p *parser) expect(tok rune) scanner.Position {
 	if p.tok != tok {
 		p.errorExpected(pos, scanner.TokenString(tok))
 	}
-	p.next() // make progress in any case
+
+	// make progress in any case
+	p.next()
+
 	return pos
 }
 
@@ -54,7 +60,7 @@ func (p *parser) parseIdentifier() *Name {
 	pos := p.pos
 	name := p.lit
 	p.expect(scanner.Ident)
-	return &Name{pos, name}
+	return &Name{StringPos: pos, String: name}
 }
 
 func (p *parser) parseToken() *Token {
@@ -62,14 +68,14 @@ func (p *parser) parseToken() *Token {
 	value := ""
 	if p.tok == scanner.String {
 		value, _ = strconv.Unquote(p.lit)
-		// Unquote may fail with an error, but only if the scanner found
-		// an illegal string in the first place. In this case the error
-		// has already been reported.
+		// Unquote may fail with an error, but only if the scanner found an
+		// illegal string in the first place. In this case the error has already
+		// been reported.
 		p.next()
 	} else {
 		p.expect(scanner.String)
 	}
-	return &Token{pos, value}
+	return &Token{StringPos: pos, String: value}
 }
 
 // ParseTerm returns nil if no term was found.
@@ -86,22 +92,22 @@ func (p *parser) parseTerm() (x Expression) {
 		const ellipsis = '…' // U+2026, the horizontal ellipsis character
 		if p.tok == ellipsis {
 			p.next()
-			x = &Range{tok, p.parseToken()}
+			x = &Range{Begin: tok, End: p.parseToken()}
 		}
 
 	case '(':
 		p.next()
-		x = &Group{pos, p.parseExpression()}
+		x = &Group{Lparen: pos, Body: p.parseExpression()}
 		p.expect(')')
 
 	case '[':
 		p.next()
-		x = &Option{pos, p.parseExpression()}
+		x = &Option{Lbrack: pos, Body: p.parseExpression()}
 		p.expect(']')
 
 	case '{':
 		p.next()
-		x = &Repetition{pos, p.parseExpression()}
+		x = &Repetition{Lbrace: pos, Body: p.parseExpression()}
 		p.expect('}')
 	}
 
@@ -119,7 +125,7 @@ func (p *parser) parseSequence() Expression {
 	switch len(list) {
 	case 0:
 		p.errorExpected(p.pos, "term")
-		return &Bad{p.pos, "term expected"}
+		return &Bad{TokPos: p.pos, Error: "term expected"}
 	case 1:
 		return list[0]
 	}
@@ -132,6 +138,7 @@ func (p *parser) parseExpression() Expression {
 
 	for {
 		list = append(list, p.parseSequence())
+		// TODO: Parse production actions; if p.tok == '<'
 		if p.tok != '|' {
 			break
 		}
@@ -155,13 +162,14 @@ func (p *parser) parseProduction() *Production {
 		expr = p.parseExpression()
 	}
 	p.expect('.')
-	return &Production{name, expr}
+	return &Production{Name: name, Expr: expr}
 }
 
 func (p *parser) parse(filename string, src io.Reader) Grammar {
 	p.scanner.Init(src)
 	p.scanner.Filename = filename
-	p.next() // initializes pos, tok, lit
+	// initializes pos, tok, lit
+	p.next()
 
 	grammar := make(Grammar)
 	for p.tok != scanner.EOF {
@@ -177,12 +185,9 @@ func (p *parser) parse(filename string, src io.Reader) Grammar {
 	return grammar
 }
 
-// Parse parses a set of EBNF productions from source src.
-// It returns a set of productions. Errors are reported
-// for incorrect syntax and if a production is declared
-// more than once; the filename is used only for error
-// positions.
-//
+// Parse parses a set of EBNF productions from source src. It returns a set of
+// productions. Errors are reported for incorrect syntax and if a production is
+// declared more than once; the filename is used only for error positions.
 func Parse(filename string, src io.Reader) (Grammar, error) {
 	var p parser
 	grammar := p.parse(filename, src)
