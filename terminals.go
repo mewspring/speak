@@ -7,7 +7,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/mewmew/speak/internal/ebnf"
+	"github.com/mewmew/speak/internal/golang.org/x/exp/ebnf"
 )
 
 // isLexical reports whether the given production name denotes a lexical

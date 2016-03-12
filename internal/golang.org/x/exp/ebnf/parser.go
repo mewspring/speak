@@ -7,7 +7,8 @@ package ebnf
 import (
 	"io"
 	"strconv"
-	"text/scanner"
+
+	"github.com/mewmew/speak/internal/text/scanner"
 )
 
 type parser struct {

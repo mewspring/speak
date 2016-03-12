@@ -29,7 +29,7 @@ package ebnf
 
 import (
 	"fmt"
-	"text/scanner"
+	"github.com/mewmew/speak/internal/text/scanner"
 	"unicode"
 	"unicode/utf8"
 )
