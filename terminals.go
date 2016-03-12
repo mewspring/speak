@@ -80,7 +80,7 @@ func (extract *extract) Expr(expr ebnf.Expression) {
 	switch x := expr.(type) {
 	case nil:
 		// empty expression
-	case ebnf.Alternative:
+	case ebnf.Alternatives:
 		for _, e := range x {
 			extract.Expr(e)
 		}
@@ -88,6 +88,8 @@ func (extract *extract) Expr(expr ebnf.Expression) {
 		for _, e := range x {
 			extract.Expr(e)
 		}
+	case *ebnf.Action:
+		extract.Expr(x.Expr)
 	case *ebnf.Name:
 		if name := x.String; isLexical(name) {
 			extract.names[name] = x
@@ -128,11 +130,17 @@ func hasAlternatives(grammar ebnf.Grammar, expr ebnf.Expression) bool {
 	case *ebnf.Name:
 		prod := grammar[x.String]
 		return hasAlternatives(grammar, prod.Expr)
-	case ebnf.Alternative:
+	case ebnf.Alternatives:
 		return true
 	}
 	return false
 }
+
+// TODO: Simplify regular expressions based on alternatives of single character
+// tokens and ranges.
+//
+//   Before: ([a-z]|[A-Z]|_)([a-z]|[A-Z]|_|[0-9])*
+//   After:  [a-zA-Z_][a-zA-Z_0-9]*
 
 // RegexpString returns a regular expression of the given terminal. As a
 // precondition, the grammar must have been validated using ebnf.Verify.
@@ -141,7 +149,7 @@ func RegexpString(grammar ebnf.Grammar, term ebnf.Expression) string {
 	case nil:
 		// empty expression
 		return ""
-	case ebnf.Alternative:
+	case ebnf.Alternatives:
 		var ss []string
 		for _, e := range x {
 			ss = append(ss, RegexpString(grammar, e))
@@ -157,6 +165,8 @@ func RegexpString(grammar ebnf.Grammar, term ebnf.Expression) string {
 			ss = append(ss, s)
 		}
 		return strings.Join(ss, "")
+	case *ebnf.Action:
+		return RegexpString(grammar, x.Expr)
 	case *ebnf.Name:
 		prod := grammar[x.String]
 		return RegexpString(grammar, prod.Expr)

@@ -56,6 +56,17 @@ func (p *parser) expect(tok rune) scanner.Position {
 	return pos
 }
 
+func (p *parser) parseAction() string {
+	// TODO: Replace with scanner.Find('»').
+	for p.tok != scanner.EOF {
+		if p.tok == '»' {
+			break
+		}
+		p.next()
+	}
+	return "<not yet implemented>"
+}
+
 func (p *parser) parseIdentifier() *Name {
 	pos := p.pos
 	name := p.lit
@@ -78,7 +89,7 @@ func (p *parser) parseToken() *Token {
 	return &Token{StringPos: pos, String: value}
 }
 
-// ParseTerm returns nil if no term was found.
+// parseTerm returns nil if no term was found.
 func (p *parser) parseTerm() (x Expression) {
 	pos := p.pos
 
@@ -114,27 +125,36 @@ func (p *parser) parseTerm() (x Expression) {
 	return x
 }
 
-func (p *parser) parseSequence() Expression {
+func (p *parser) parseSequence() (x Expression) {
 	var list Sequence
 
-	for x := p.parseTerm(); x != nil; x = p.parseTerm() {
-		list = append(list, x)
+	for term := p.parseTerm(); term != nil; term = p.parseTerm() {
+		list = append(list, term)
 	}
 
-	// no need for a sequence if list.Len() < 2
+	// no need for a sequence if len(list) < 2
 	switch len(list) {
 	case 0:
 		p.errorExpected(p.pos, "term")
 		return &Bad{TokPos: p.pos, Error: "term expected"}
 	case 1:
-		return list[0]
+		x = list[0]
+	default:
+		x = list
 	}
 
-	return list
+	// Parse optional action.
+	if p.tok == '«' {
+		p.next()
+		x = &Action{Expr: x, Larrow: p.pos, Body: p.parseAction()}
+		p.expect('»')
+	}
+
+	return x
 }
 
 func (p *parser) parseExpression() Expression {
-	var list Alternative
+	var list Alternatives
 
 	for {
 		list = append(list, p.parseSequence())
@@ -146,7 +166,7 @@ func (p *parser) parseExpression() Expression {
 	}
 	// len(list) > 0
 
-	// no need for an Alternative node if list.Len() < 2
+	// no need for an Alternatives node if len(list) < 2
 	if len(list) == 1 {
 		return list[0]
 	}

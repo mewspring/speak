@@ -50,6 +50,8 @@ func speak(grammarPath string) error {
 		return errutil.Err(err)
 	}
 
+	pretty.Println(grammar)
+
 	terms := Terminals(grammar)
 
 	_ = pretty.Print

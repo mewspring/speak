@@ -11,7 +11,7 @@
 //
 //    Production  = name "=" [ Expression ] "." .
 //    Expression  = Alternative { "|" Alternative } .
-//    Alternative = Term { Term } "<<" Action ">>" .
+//    Alternative = Term { Term } [ "«" Action "»" ] .
 //    Term        = name | token [ "…" token ] | Group | Option | Repetition .
 //    Group       = "(" Expression ")" .
 //    Option      = "[" Expression "]" .
@@ -23,7 +23,8 @@
 // with an uppercase Unicode letter denote non-terminal productions (i.e.,
 // productions which allow white-space and comments between tokens); all other
 // production names denote lexical productions. Production actions, enclosed
-// within "<<" and ">>", contain arbitrary Go source code.
+// within "«" and "»", contain arbitrary Go source code related to an
+// alternative.
 package ebnf
 
 import (
@@ -79,12 +80,19 @@ type (
 		Expr Expression
 	}
 
-	// An Alternative node represents a non-empty list of alternative
+	// An Alternatives node represents a non-empty list of alternative
 	// expressions.
-	Alternative []Expression // x | y | z
+	Alternatives []Expression // x | y | z
 
 	// A Sequence node represents a non-empty list of sequential expressions.
 	Sequence []Expression // x y z
+
+	// An Action node represents the action of a production expression.
+	Action struct {
+		Expr   Expression
+		Larrow scanner.Position
+		Body   string // expr « body »
+	}
 
 	// A Name node represents a production name.
 	Name struct {
@@ -135,8 +143,8 @@ func (x *Production) Pos() scanner.Position {
 }
 
 // Pos is the position of the first character of the syntactic construct
-func (x Alternative) Pos() scanner.Position {
-	// the parser always generates non-empty Alternative
+func (x Alternatives) Pos() scanner.Position {
+	// the parser always generates non-empty Alternatives
 	return x[0].Pos()
 }
 
@@ -144,6 +152,11 @@ func (x Alternative) Pos() scanner.Position {
 func (x Sequence) Pos() scanner.Position {
 	// the parser always generates non-empty Sequences
 	return x[0].Pos()
+}
+
+// Pos is the position of the first character of the syntactic construct
+func (x *Action) Pos() scanner.Position {
+	return x.Larrow
 }
 
 // Pos is the position of the first character of the syntactic construct
@@ -225,7 +238,7 @@ func (v *verifier) verifyExpr(expr Expression, lexical bool) {
 	switch x := expr.(type) {
 	case nil:
 		// empty expression
-	case Alternative:
+	case Alternatives:
 		for _, e := range x {
 			v.verifyExpr(e, lexical)
 		}
@@ -233,6 +246,9 @@ func (v *verifier) verifyExpr(expr Expression, lexical bool) {
 		for _, e := range x {
 			v.verifyExpr(e, lexical)
 		}
+	case *Action:
+		v.verifyExpr(x.Expr, lexical)
+		// TODO: Verify action body.
 	case *Name:
 		// a production with this name must exist; add it to the worklist if not
 		// yet processed
