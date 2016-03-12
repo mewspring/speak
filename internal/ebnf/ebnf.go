@@ -87,7 +87,8 @@ type (
 	// A Sequence node represents a non-empty list of sequential expressions.
 	Sequence []Expression // x y z
 
-	// An Action node represents the action of a production expression.
+	// An Action node represents a production expression with an associated
+	// action.
 	Action struct {
 		Expr   Expression
 		Larrow scanner.Position
