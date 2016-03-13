@@ -145,10 +145,10 @@ func (p *parser) parseSequence() (x Expression) {
 	}
 
 	// Parse optional action.
-	if p.tok == '«' {
+	//    « body »
+	if p.tok == scanner.Action {
+		x = &Action{Expr: x, Larrow: p.pos, Body: parseAction(p.lit)}
 		p.next()
-		x = &Action{Expr: x, Larrow: p.pos, Body: p.parseAction()}
-		p.expect('»')
 	}
 
 	return x
@@ -159,7 +159,6 @@ func (p *parser) parseExpression() Expression {
 
 	for {
 		list = append(list, p.parseSequence())
-		// TODO: Parse production actions; if p.tok == '<'
 		if p.tok != '|' {
 			break
 		}
