@@ -7,7 +7,8 @@ package scanner_test
 import (
 	"fmt"
 	"strings"
-	"text/scanner"
+
+	"github.com/mewmew/speak/internal/text/scanner"
 )
 
 func Example() {

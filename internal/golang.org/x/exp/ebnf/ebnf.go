@@ -29,9 +29,10 @@ package ebnf
 
 import (
 	"fmt"
-	"github.com/mewmew/speak/internal/text/scanner"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/mewmew/speak/internal/text/scanner"
 )
 
 // -----------------------------------------------------------------------------

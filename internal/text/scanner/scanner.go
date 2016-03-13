@@ -23,8 +23,7 @@ import (
 	"unicode/utf8"
 )
 
-// A source position is represented by a Position value.
-// A position is valid if Line > 0.
+// A Position represents a source position, which is valid if Line > 0.
 type Position struct {
 	Filename string // filename, if any
 	Offset   int    // byte offset, starting at 0
