@@ -223,6 +223,12 @@ var tokenList = []token{
 	{'.', "."},
 	{'~', "~"},
 	{'(', "("},
+
+	{Comment, "// actions"},
+	{Action, "«»"},
+	{Action, "« return ast.BinaryExpr{X: $0, Op: $1, Y: $2} »"},
+	{Action, "«" + "\n\n/* foobar */\n\n" + "»"},
+	{Action, "«" + f100 + "»"},
 }
 
 func makeSource(pattern string) *bytes.Buffer {
@@ -235,7 +241,7 @@ func makeSource(pattern string) *bytes.Buffer {
 
 func checkTok(t *testing.T, s *Scanner, line int, got, want rune, text string) {
 	if got != want {
-		t.Fatalf("tok = %s, want %s for %q", TokenString(got), TokenString(want), text)
+		t.Errorf("tok = %s, want %s for %q", TokenString(got), TokenString(want), text)
 	}
 	if s.Line != line {
 		t.Errorf("line = %d, want %d for %q", s.Line, line, text)

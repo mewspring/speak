@@ -69,8 +69,9 @@ const (
 	ScanStrings    = 1 << -String
 	ScanRawStrings = 1 << -RawString
 	ScanComments   = 1 << -Comment
+	ScanActions    = 1 << -Action
 	SkipComments   = 1 << -skipComment // if set with ScanComments, comments become white space
-	GoTokens       = ScanIdents | ScanFloats | ScanChars | ScanStrings | ScanRawStrings | ScanComments | SkipComments
+	GoTokens       = ScanIdents | ScanFloats | ScanChars | ScanStrings | ScanRawStrings | ScanComments | SkipComments | ScanActions
 )
 
 // The result of Scan is one of these tokens or a Unicode character.
@@ -83,6 +84,7 @@ const (
 	String
 	RawString
 	Comment
+	Action
 	skipComment
 )
 
@@ -95,6 +97,7 @@ var tokenString = map[rune]string{
 	String:    "String",
 	RawString: "RawString",
 	Comment:   "Comment",
+	Action:    "Action",
 }
 
 // TokenString returns a printable string for a token or Unicode character.
@@ -533,6 +536,17 @@ func (s *Scanner) scanComment(ch rune) rune {
 	return ch
 }
 
+func (s *Scanner) scanAction() {
+	ch := s.next() // read character after '«'
+	for ch != '»' {
+		if ch < 0 {
+			s.error("action not terminated")
+			return
+		}
+		ch = s.next()
+	}
+}
+
 // Scan reads the next token or Unicode character from source and returns it.
 // It only recognizes tokens t for which the respective Mode bit (1<<-t) is set.
 // It returns EOF at the end of the source. It reports scanner errors (read and
@@ -624,6 +638,12 @@ redo:
 			if s.Mode&ScanRawStrings != 0 {
 				s.scanRawString()
 				tok = String
+			}
+			ch = s.next()
+		case '«':
+			if s.Mode&ScanActions != 0 {
+				s.scanAction()
+				tok = Action
 			}
 			ch = s.next()
 		default:
