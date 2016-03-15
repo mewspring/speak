@@ -12,7 +12,7 @@ The name *Speak* is derived from the pronunciation of the Swedish word *spik*, i
 
 [µC compiler]: https://github.com/mewmew/uc
 [Gocc]: https://github.com/goccmack/gocc
-[ebnf]: https://godoc.org/github.com/mewmew/speak/internal/ebnf
+[ebnf]: https://godoc.org/github.com/mewmew/speak/internal/golang.org/x/exp/ebnf
 
 ## Public domain
 
