@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp/syntax"
 
 	"github.com/kr/pretty"
 	"github.com/pkg/errors"
@@ -48,27 +49,26 @@ func speak(grammarPath string) error {
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	if err = ebnf.Verify(grammar, "Program"); err != nil {
+	if err := ebnf.Verify(grammar, "Program"); err != nil {
 		return errors.WithStack(err)
 	}
-
+	fmt.Println("=== [ Grammar ] ===")
 	pretty.Println(grammar)
 
+	// Extract terminals from grammar.
 	terms := Terminals(grammar)
-
-	_ = pretty.Print
-
-	//fmt.Println("=== [ Grammar ] ===")
-	//pretty.Println(grammar)
-
-	//fmt.Println("=== [ Terminals ] ===")
-	//pretty.Println(terms)
+	fmt.Println("=== [ Terminals ] ===")
+	pretty.Println(terms)
 
 	fmt.Println("=== [ Regular expressions ] ===")
 	for _, term := range terms {
-		//pretty.Println(term)
-		fmt.Println("term:", RegexpString(grammar, term))
+		reg := Regexp(grammar, term)
+		fmt.Println("reg:   ", reg)
+		simple, err := syntax.Parse(reg.String(), syntax.Perl)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+		fmt.Println("simple:", simple)
 	}
-
 	return nil
 }

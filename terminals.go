@@ -3,18 +3,21 @@ package main
 import (
 	"fmt"
 	"sort"
-	"strings"
 	"unicode"
 	"unicode/utf8"
 
 	"golang.org/x/exp/ebnf"
 )
 
-// isLexical reports whether the given production name denotes a lexical
-// production.
-func isLexical(name string) bool {
-	ch, _ := utf8.DecodeRuneInString(name)
-	return !unicode.IsUpper(ch)
+// Terminals returns the terminals used by the given grammar. As a precondition,
+// the grammar must have been validated using ebnf.Verify.
+func Terminals(grammar ebnf.Grammar) []ebnf.Expression {
+	extract := &extract{
+		names:  make(map[string]*ebnf.Name),
+		tokens: make(map[string]*ebnf.Token),
+		ranges: make(map[string]*ebnf.Range),
+	}
+	return extract.Terminals(grammar)
 }
 
 // extract contains data used when extracting terminals from a grammar.
@@ -93,9 +96,9 @@ func (extract *extract) Expr(expr ebnf.Expression) {
 			extract.names[name] = x
 		}
 	case *ebnf.Token:
-		extract.tokens[x.String] = x
+		name := x.String
+		extract.tokens[name] = x
 	case *ebnf.Range:
-		// TODO: Refactor to make use of RegexpString.
 		name := "[" + x.Begin.String + "-" + x.End.String + "]"
 		extract.ranges[name] = x
 	case *ebnf.Group:
@@ -109,83 +112,9 @@ func (extract *extract) Expr(expr ebnf.Expression) {
 	}
 }
 
-// Terminals returns the terminals used by the given grammar. As a precondition,
-// the grammar must have been validated using ebnf.Verify.
-func Terminals(grammar ebnf.Grammar) []ebnf.Expression {
-	extract := &extract{
-		names:  make(map[string]*ebnf.Name),
-		tokens: make(map[string]*ebnf.Token),
-		ranges: make(map[string]*ebnf.Range),
-	}
-	return extract.Terminals(grammar)
-}
-
-// hasAlternative reports whether the given expression has more than one
-// alternative. As a precondition, the grammar must have been validated using
-// ebnf.Verify.
-func hasAlternative(grammar ebnf.Grammar, expr ebnf.Expression) bool {
-	switch x := expr.(type) {
-	case *ebnf.Name:
-		prod := grammar[x.String]
-		return hasAlternative(grammar, prod.Expr)
-	case ebnf.Alternative:
-		return true
-	}
-	return false
-}
-
-// TODO: Simplify regular expressions based on alternative of single character
-// tokens and ranges.
-//
-//   Before: ([a-z]|[A-Z]|_)([a-z]|[A-Z]|_|[0-9])*
-//   After:  [a-zA-Z_][a-zA-Z_0-9]*
-
-// RegexpString returns a regular expression of the given terminal. As a
-// precondition, the grammar must have been validated using ebnf.Verify.
-func RegexpString(grammar ebnf.Grammar, term ebnf.Expression) string {
-	switch x := term.(type) {
-	case nil:
-		// empty expression
-		return ""
-	case ebnf.Alternative:
-		var ss []string
-		for _, e := range x {
-			ss = append(ss, RegexpString(grammar, e))
-		}
-		return strings.Join(ss, "|")
-	case ebnf.Sequence:
-		var ss []string
-		for _, e := range x {
-			s := RegexpString(grammar, e)
-			if hasAlternative(grammar, e) {
-				s = "(" + s + ")"
-			}
-			ss = append(ss, s)
-		}
-		return strings.Join(ss, "")
-	case *ebnf.Name:
-		prod := grammar[x.String]
-		return RegexpString(grammar, prod.Expr)
-	case *ebnf.Token:
-		return x.String
-	case *ebnf.Range:
-		// TODO: Excape a and b in [a-b]
-		return "[" + x.Begin.String + "-" + x.End.String + "]"
-	case *ebnf.Group:
-		return "(" + RegexpString(grammar, x.Body) + ")"
-	case *ebnf.Option:
-		s := RegexpString(grammar, x.Body)
-		if hasAlternative(grammar, x.Body) {
-			s = "(" + s + ")"
-		}
-		return s + "?"
-	case *ebnf.Repetition:
-		s := RegexpString(grammar, x.Body)
-		if hasAlternative(grammar, x.Body) {
-			s = "(" + s + ")"
-		}
-		return s + "*"
-	default:
-		panic(fmt.Sprintf("internal error: unexpected type %T", term))
-	}
+// isLexical reports whether the given production name denotes a lexical
+// production.
+func isLexical(name string) bool {
+	ch, _ := utf8.DecodeRuneInString(name)
+	return !unicode.IsUpper(ch)
 }
