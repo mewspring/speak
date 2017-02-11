@@ -7,7 +7,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/mewmew/speak/internal/golang.org/x/exp/ebnf"
+	"golang.org/x/exp/ebnf"
 )
 
 // isLexical reports whether the given production name denotes a lexical
@@ -80,7 +80,7 @@ func (extract *extract) Expr(expr ebnf.Expression) {
 	switch x := expr.(type) {
 	case nil:
 		// empty expression
-	case ebnf.Alternatives:
+	case ebnf.Alternative:
 		for _, e := range x {
 			extract.Expr(e)
 		}
@@ -88,8 +88,6 @@ func (extract *extract) Expr(expr ebnf.Expression) {
 		for _, e := range x {
 			extract.Expr(e)
 		}
-	case *ebnf.Action:
-		extract.Expr(x.Expr)
 	case *ebnf.Name:
 		if name := x.String; isLexical(name) {
 			extract.names[name] = x
@@ -122,21 +120,21 @@ func Terminals(grammar ebnf.Grammar) []ebnf.Expression {
 	return extract.Terminals(grammar)
 }
 
-// hasAlternatives reports whether the given expression has more than one
+// hasAlternative reports whether the given expression has more than one
 // alternative. As a precondition, the grammar must have been validated using
 // ebnf.Verify.
-func hasAlternatives(grammar ebnf.Grammar, expr ebnf.Expression) bool {
+func hasAlternative(grammar ebnf.Grammar, expr ebnf.Expression) bool {
 	switch x := expr.(type) {
 	case *ebnf.Name:
 		prod := grammar[x.String]
-		return hasAlternatives(grammar, prod.Expr)
-	case ebnf.Alternatives:
+		return hasAlternative(grammar, prod.Expr)
+	case ebnf.Alternative:
 		return true
 	}
 	return false
 }
 
-// TODO: Simplify regular expressions based on alternatives of single character
+// TODO: Simplify regular expressions based on alternative of single character
 // tokens and ranges.
 //
 //   Before: ([a-z]|[A-Z]|_)([a-z]|[A-Z]|_|[0-9])*
@@ -149,7 +147,7 @@ func RegexpString(grammar ebnf.Grammar, term ebnf.Expression) string {
 	case nil:
 		// empty expression
 		return ""
-	case ebnf.Alternatives:
+	case ebnf.Alternative:
 		var ss []string
 		for _, e := range x {
 			ss = append(ss, RegexpString(grammar, e))
@@ -159,14 +157,12 @@ func RegexpString(grammar ebnf.Grammar, term ebnf.Expression) string {
 		var ss []string
 		for _, e := range x {
 			s := RegexpString(grammar, e)
-			if hasAlternatives(grammar, e) {
+			if hasAlternative(grammar, e) {
 				s = "(" + s + ")"
 			}
 			ss = append(ss, s)
 		}
 		return strings.Join(ss, "")
-	case *ebnf.Action:
-		return RegexpString(grammar, x.Expr)
 	case *ebnf.Name:
 		prod := grammar[x.String]
 		return RegexpString(grammar, prod.Expr)
@@ -179,13 +175,13 @@ func RegexpString(grammar ebnf.Grammar, term ebnf.Expression) string {
 		return "(" + RegexpString(grammar, x.Body) + ")"
 	case *ebnf.Option:
 		s := RegexpString(grammar, x.Body)
-		if hasAlternatives(grammar, x.Body) {
+		if hasAlternative(grammar, x.Body) {
 			s = "(" + s + ")"
 		}
 		return s + "?"
 	case *ebnf.Repetition:
 		s := RegexpString(grammar, x.Body)
-		if hasAlternatives(grammar, x.Body) {
+		if hasAlternative(grammar, x.Body) {
 			s = "(" + s + ")"
 		}
 		return s + "*"

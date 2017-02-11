@@ -1,7 +1,5 @@
-// Speak is an experimental compiler construction playground, written for the µC
-// compiler as a learning experience. Inspired by Gocc, Speak generates lexers
-// and parses from language grammars expressed in EBNF with annotated production
-// actions.
+// Speak is an experimental compiler construction playground. Inspired by Gocc,
+// Speak generates lexers and parses from language grammars expressed in EBNF.
 package main
 
 import (
@@ -12,13 +10,13 @@ import (
 	"path/filepath"
 
 	"github.com/kr/pretty"
-	"github.com/mewkiz/pkg/errutil"
-	"github.com/mewmew/speak/internal/golang.org/x/exp/ebnf"
+	"github.com/pkg/errors"
+	"golang.org/x/exp/ebnf"
 )
 
 func usage() {
 	const use = `
-speak grammar.ebnf
+speak FILE.ebnf
 
 Flags:`
 	fmt.Fprintln(os.Stderr, use[1:])
@@ -28,26 +26,30 @@ Flags:`
 func main() {
 	flag.Usage = usage
 	flag.Parse()
-	for _, grammarPath := range flag.Args() {
-		if err := speak(grammarPath); err != nil {
-			log.Fatal(err)
-		}
+	if flag.NArg() != 1 {
+		flag.Usage()
+		os.Exit(1)
+	}
+	grammarPath := flag.Arg(0)
+	if err := speak(grammarPath); err != nil {
+		log.Fatal(err)
 	}
 }
 
+// speak generates a lexer and parser for the given EBNF grammar.
 func speak(grammarPath string) error {
 	// Parse the grammar.
 	f, err := os.Open(grammarPath)
 	if err != nil {
-		return errutil.Err(err)
+		return errors.WithStack(err)
 	}
 	defer f.Close()
 	grammar, err := ebnf.Parse(filepath.Base(grammarPath), f)
 	if err != nil {
-		return errutil.Err(err)
+		return errors.WithStack(err)
 	}
 	if err = ebnf.Verify(grammar, "Program"); err != nil {
-		return errutil.Err(err)
+		return errors.WithStack(err)
 	}
 
 	pretty.Println(grammar)
