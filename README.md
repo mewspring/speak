@@ -13,7 +13,3 @@ The name *Speak* is derived from the pronunciation of the Swedish word *spik*, i
 The source code and any original content of this repository is hereby released into the [public domain].
 
 [public domain]: https://creativecommons.org/publicdomain/zero/1.0/
-
-## License
-
-Any code or documentation directly derived from the [standard Go source code](https://github.com/golang) is governed by a [BSD license](http://golang.org/LICENSE).
