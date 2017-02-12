@@ -4,16 +4,14 @@ package main
 
 import (
 	"bufio"
-	"bytes"
-	"encoding/json"
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"path/filepath"
 	"sort"
 
+	"github.com/mewmew/speak/terminals"
 	"github.com/pkg/errors"
 	"golang.org/x/exp/ebnf"
 )
@@ -77,13 +75,13 @@ func outputTerms(grammarPath, start, output string, indent bool) error {
 	// Extract terminals from grammar.
 	terms := extractTerms(grammar)
 
-	jsonTerms := &jsonTerms{}
+	jsonTerms := &terminals.Terminals{}
 	for id, term := range terms.names {
 		reg, err := regexpString(grammar, term)
 		if err != nil {
 			return errors.WithStack(err)
 		}
-		lex := &Lexeme{
+		lex := &terminals.Lexeme{
 			ID:  id,
 			Reg: reg,
 		}
@@ -105,53 +103,8 @@ func outputTerms(grammarPath, start, output string, indent bool) error {
 		defer f.Close()
 		w = f
 	}
-	if err := writeJSON(w, jsonTerms, indent); err != nil {
+	if err := terminals.Encode(w, jsonTerms, indent); err != nil {
 		return errors.WithStack(err)
 	}
 	return nil
 }
-
-// writeJSON writes the terminals in JSON format to w.
-func writeJSON(w io.Writer, jsonTerms *jsonTerms, indent bool) error {
-	var src io.Reader
-	if indent {
-		buf, err := json.MarshalIndent(jsonTerms, "", "\t")
-		if err != nil {
-			return errors.WithStack(err)
-		}
-		buf = append(buf, '\n')
-		src = bytes.NewReader(buf)
-	} else {
-		buf, err := json.Marshal(jsonTerms)
-		if err != nil {
-			return errors.WithStack(err)
-		}
-		buf = append(buf, '\n')
-		src = bytes.NewReader(buf)
-	}
-	if _, err := io.Copy(w, src); err != nil {
-		return errors.WithStack(err)
-	}
-	return nil
-}
-
-// Output JSON encoded terminals.
-type jsonTerms struct {
-	Names  lexemes  `json:"names"`
-	Tokens []string `json:"tokens"`
-}
-
-// Lexeme represents a lexeme of the grammar.
-type Lexeme struct {
-	// Lexeme ID.
-	ID string `json:"id"`
-	// Regular expression of the lexeme.
-	Reg string `json:"reg"`
-}
-
-// lexemes implements sort.Sort, sorting based on lexeme ID.
-type lexemes []*Lexeme
-
-func (ls lexemes) Len() int           { return len(ls) }
-func (ls lexemes) Less(i, j int) bool { return ls[i].ID < ls[j].ID }
-func (ls lexemes) Swap(i, j int)      { ls[i], ls[j] = ls[j], ls[i] }

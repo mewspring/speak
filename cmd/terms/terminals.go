@@ -10,8 +10,8 @@ import (
 
 // extractTerms returns the terminals used by the given grammar. As a
 // precondition, the grammar must have been validated using validate.
-func extractTerms(grammar ebnf.Grammar) *terminals {
-	terms := &terminals{
+func extractTerms(grammar ebnf.Grammar) *extract {
+	terms := &extract{
 		names:  make(map[string]*ebnf.Name),
 		tokens: make(map[string]*ebnf.Token),
 	}
@@ -25,8 +25,8 @@ func extractTerms(grammar ebnf.Grammar) *terminals {
 	return terms
 }
 
-// terminals records the terminals of a grammar.
-type terminals struct {
+// extract records the terminals of a grammar.
+type extract struct {
 	// Terminal production names.
 	names map[string]*ebnf.Name
 	// Token terminals.
@@ -34,7 +34,7 @@ type terminals struct {
 }
 
 // expr extracts the terminals defined within the given expression.
-func (terms *terminals) expr(expr ebnf.Expression) {
+func (terms *extract) expr(expr ebnf.Expression) {
 	switch expr := expr.(type) {
 	case nil:
 		// empty expression
