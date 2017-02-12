@@ -3,12 +3,13 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
-	"regexp/syntax"
+	"sort"
 
 	"github.com/kr/pretty"
 	"github.com/pkg/errors"
@@ -17,7 +18,7 @@ import (
 
 func usage() {
 	const use = `
-speak FILE.ebnf
+speak [OPTION]... FILE.ebnf
 
 Flags:`
 	fmt.Fprintln(os.Stderr, use[1:])
@@ -25,6 +26,12 @@ Flags:`
 }
 
 func main() {
+	var (
+		// start represents the initial production rule of the grammar.
+		start string
+	)
+	flag.StringVar(&start, "start", "Program", "initial production rule of the grammar")
+	//flag.StringVar(&skip, "skip", "skip", "comma-separated list of terminals to ignore (e.g. whitespace, comments)")
 	flag.Usage = usage
 	flag.Parse()
 	if flag.NArg() != 1 {
@@ -32,43 +39,74 @@ func main() {
 		os.Exit(1)
 	}
 	grammarPath := flag.Arg(0)
-	if err := speak(grammarPath); err != nil {
+	if err := speak(grammarPath, start); err != nil {
 		log.Fatal(err)
 	}
 }
 
-// speak generates a lexer and parser for the given EBNF grammar.
-func speak(grammarPath string) error {
+// speak generates lexers and parsers for the given EBNF grammar.
+func speak(grammarPath, start string) error {
 	// Parse the grammar.
 	f, err := os.Open(grammarPath)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 	defer f.Close()
-	grammar, err := ebnf.Parse(filepath.Base(grammarPath), f)
+	br := bufio.NewReader(f)
+	grammar, err := ebnf.Parse(filepath.Base(grammarPath), br)
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	if err := ebnf.Verify(grammar, "Program"); err != nil {
+	if err := validate(grammar, start); err != nil {
 		return errors.WithStack(err)
 	}
 	fmt.Println("=== [ Grammar ] ===")
 	pretty.Println(grammar)
 
 	// Extract terminals from grammar.
-	terms := Terminals(grammar)
+	terms := extractTerms(grammar)
 	fmt.Println("=== [ Terminals ] ===")
 	pretty.Println(terms)
 
-	fmt.Println("=== [ Regular expressions ] ===")
-	for _, term := range terms {
-		reg := Regexp(grammar, term)
-		fmt.Println("reg:   ", reg)
-		simple, err := syntax.Parse(reg.String(), syntax.Perl)
-		if err != nil {
-			return errors.WithStack(err)
+	// Return extracted terminals.
+	var names lexemes
+	var tokens lexemes
+	for id, term := range terms.names {
+		reg := regexpString(grammar, term)
+		lex := &lexeme{
+			id:  id,
+			reg: reg,
 		}
-		fmt.Println("simple:", simple)
+		names = append(names, lex)
 	}
+	for id, term := range terms.tokens {
+		reg := regexpString(grammar, term)
+		lex := &lexeme{
+			id:  id,
+			reg: reg,
+		}
+		tokens = append(tokens, lex)
+	}
+	sort.Sort(names)
+	sort.Sort(tokens)
+
+	fmt.Println("=== [ Regular expressions ] ===")
+	pretty.Println("names:", names)
+	pretty.Println("tokens:", tokens)
 	return nil
 }
+
+// lexeme represents a lexeme of the grammar.
+type lexeme struct {
+	// Lexeme ID.
+	id string
+	// Regular expression of the lexeme.
+	reg string
+}
+
+// lexemes implements sort.Sort, sorting based on lexeme ID.
+type lexemes []*lexeme
+
+func (ls lexemes) Len() int           { return len(ls) }
+func (ls lexemes) Less(i, j int) bool { return ls[i].id < ls[j].id }
+func (ls lexemes) Swap(i, j int)      { ls[i], ls[j] = ls[j], ls[i] }

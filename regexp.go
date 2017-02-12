@@ -8,9 +8,9 @@ import (
 	"golang.org/x/exp/ebnf"
 )
 
-// Regexp returns a regular expression of the given terminal. As a precondition,
+// regexp returns a regular expression of the given terminal. As a precondition,
 // the grammar must have been validated using ebnf.Verify.
-func Regexp(grammar ebnf.Grammar, expr ebnf.Expression) *syntax.Regexp {
+func regexp(grammar ebnf.Grammar, expr ebnf.Expression) *syntax.Regexp {
 	switch expr := expr.(type) {
 	case nil:
 		// empty expression
@@ -21,7 +21,7 @@ func Regexp(grammar ebnf.Grammar, expr ebnf.Expression) *syntax.Regexp {
 		// x | y | z
 		var subs []*syntax.Regexp
 		for _, e := range expr {
-			sub := Regexp(grammar, e)
+			sub := regexp(grammar, e)
 			subs = append(subs, sub)
 		}
 		return &syntax.Regexp{
@@ -32,7 +32,7 @@ func Regexp(grammar ebnf.Grammar, expr ebnf.Expression) *syntax.Regexp {
 		// x y z
 		var subs []*syntax.Regexp
 		for _, e := range expr {
-			sub := Regexp(grammar, e)
+			sub := regexp(grammar, e)
 			subs = append(subs, sub)
 		}
 		return &syntax.Regexp{
@@ -42,7 +42,7 @@ func Regexp(grammar ebnf.Grammar, expr ebnf.Expression) *syntax.Regexp {
 	case *ebnf.Name:
 		// foo
 		prod := grammar[expr.String]
-		return Regexp(grammar, prod.Expr)
+		return regexp(grammar, prod.Expr)
 	case *ebnf.Token:
 		// "foo"
 		runes := []rune(expr.String)
@@ -61,7 +61,7 @@ func Regexp(grammar ebnf.Grammar, expr ebnf.Expression) *syntax.Regexp {
 		}
 	case *ebnf.Group:
 		// (body)
-		sub := Regexp(grammar, expr.Body)
+		sub := regexp(grammar, expr.Body)
 		subs := []*syntax.Regexp{sub}
 		return &syntax.Regexp{
 			Op:  syntax.OpCapture,
@@ -69,7 +69,7 @@ func Regexp(grammar ebnf.Grammar, expr ebnf.Expression) *syntax.Regexp {
 		}
 	case *ebnf.Option:
 		// [body]
-		sub := Regexp(grammar, expr.Body)
+		sub := regexp(grammar, expr.Body)
 		subs := []*syntax.Regexp{sub}
 		return &syntax.Regexp{
 			Op:  syntax.OpQuest,
@@ -77,7 +77,7 @@ func Regexp(grammar ebnf.Grammar, expr ebnf.Expression) *syntax.Regexp {
 		}
 	case *ebnf.Repetition:
 		// {body}
-		sub := Regexp(grammar, expr.Body)
+		sub := regexp(grammar, expr.Body)
 		subs := []*syntax.Regexp{sub}
 		return &syntax.Regexp{
 			Op:  syntax.OpStar,
@@ -86,4 +86,13 @@ func Regexp(grammar ebnf.Grammar, expr ebnf.Expression) *syntax.Regexp {
 	default:
 		panic(fmt.Sprintf("internal error: unexpected type %T", expr))
 	}
+}
+
+// regexpString returns the string representation of a regular expression of the
+// given terminal. As a precondition, the grammar must have been validated using
+// ebnf.Verify.
+func regexpString(grammar ebnf.Grammar, expr ebnf.Expression) string {
+	reg := regexp(grammar, expr)
+	simple := reg.Simplify()
+	return simple.String()
 }
