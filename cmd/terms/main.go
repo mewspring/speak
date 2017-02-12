@@ -1,3 +1,5 @@
+// The terms command extracts regular expressions for terminals of a given input
+// grammar, and outputs them as JSON.
 package main
 
 import (
@@ -77,7 +79,10 @@ func outputTerms(grammarPath, start, output string, indent bool) error {
 
 	jsonTerms := &jsonTerms{}
 	for id, term := range terms.names {
-		reg := regexpString(grammar, term)
+		reg, err := regexpString(grammar, term)
+		if err != nil {
+			return errors.WithStack(err)
+		}
 		lex := &Lexeme{
 			ID:  id,
 			Reg: reg,

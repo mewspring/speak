@@ -5,6 +5,8 @@ import (
 	"regexp/syntax"
 	"unicode/utf8"
 
+	"github.com/pkg/errors"
+
 	"golang.org/x/exp/ebnf"
 )
 
@@ -91,8 +93,11 @@ func regexp(grammar ebnf.Grammar, expr ebnf.Expression) *syntax.Regexp {
 // regexpString returns the string representation of a regular expression of the
 // given terminal. As a precondition, the grammar must have been validated using
 // ebnf.Verify.
-func regexpString(grammar ebnf.Grammar, expr ebnf.Expression) string {
+func regexpString(grammar ebnf.Grammar, expr ebnf.Expression) (string, error) {
 	reg := regexp(grammar, expr)
-	simple := reg.Simplify()
-	return simple.String()
+	simple, err := syntax.Parse(reg.String(), syntax.Perl)
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+	return simple.String(), nil
 }
