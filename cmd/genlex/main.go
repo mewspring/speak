@@ -72,6 +72,7 @@ func genLexer(ids []string, reg string) error {
 	}
 
 	// Generate token/token.go.
+	log.Println(`Creating "token/token.go"`)
 	t1 := t.Lookup("token.go.tmpl")
 	if err := os.MkdirAll("token", 0755); err != nil {
 		return errors.WithStack(err)
@@ -85,7 +86,14 @@ func genLexer(ids []string, reg string) error {
 		return errors.WithStack(err)
 	}
 
+	// Locate import path of the token package.
+	tokenImportPath, err := goutil.RelImpPath("token")
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
 	// Generate lexer/lexer.go.
+	log.Println(`Creating "lexer/lexer.go"`)
 	t2 := t.Lookup("lexer.go.tmpl")
 	if err := os.MkdirAll("lexer", 0755); err != nil {
 		return errors.WithStack(err)
@@ -95,7 +103,11 @@ func genLexer(ids []string, reg string) error {
 		return errors.WithStack(err)
 	}
 	defer f2.Close()
-	if err := t2.Execute(f2, reg); err != nil {
+	m := map[string]string{
+		"ImportPath": tokenImportPath,
+		"Regexp":     reg,
+	}
+	if err := t2.Execute(f2, m); err != nil {
 		return errors.WithStack(err)
 	}
 	return nil

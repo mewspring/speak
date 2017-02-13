@@ -8,13 +8,13 @@ import (
 	"io/ioutil"
 	"regexp"
 
-	"github.com/mewmew/speak/cmd/genlex/token"
+	"{{ .ImportPath }}"
 	"github.com/pkg/errors"
 )
 
 // regstr specifies a regular expression for identifying the tokens of the input
 // grammar.
-const regstr = `{{ . }}`
+const regstr = `{{ .Regexp }}`
 
 // reg is a compiled version of regstr with leftmost-longest matching enabled.
 var reg *regexp.Regexp

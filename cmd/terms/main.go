@@ -121,6 +121,7 @@ func outputTerms(grammarPath, start, output string, indent bool, skip []string) 
 	// Print the JSON output to stdout or the path specified by the "-o" flag.
 	w := os.Stdout
 	if len(output) > 0 {
+		log.Printf("Creating %q", output)
 		f, err := os.Create(output)
 		if err != nil {
 			log.Fatal(err)
