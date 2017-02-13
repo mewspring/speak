@@ -7,10 +7,12 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"text/template"
 
+	"github.com/mewkiz/pkg/goutil"
 	"github.com/mewmew/speak/terminals"
 	"github.com/pkg/errors"
 )
@@ -58,12 +60,16 @@ func main() {
 // terminators of the input grammar.
 func genLexer(ids []string, reg string) error {
 	// Parse templates.
-	t, err := template.ParseFiles("token.go.tmpl", "lexer.go.tmpl")
+	dir, err := goutil.SrcDir("github.com/mewmew/speak/cmd/genlex")
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	// TODO: Figure out how to embed token.go.tmpl and lexer.go.tmpl into the
-	// compiled binary of genlex.
+	tokenTmplPath := filepath.Join(dir, "token.go.tmpl")
+	lexerTmplPath := filepath.Join(dir, "lexer.go.tmpl")
+	t, err := template.ParseFiles(tokenTmplPath, lexerTmplPath)
+	if err != nil {
+		return errors.WithStack(err)
+	}
 
 	// Generate token/token.go.
 	t1 := t.Lookup("token.go.tmpl")
@@ -78,6 +84,7 @@ func genLexer(ids []string, reg string) error {
 	if err := t1.Execute(f1, ids); err != nil {
 		return errors.WithStack(err)
 	}
+
 	// Generate lexer/lexer.go.
 	t2 := t.Lookup("lexer.go.tmpl")
 	if err := os.MkdirAll("lexer", 0755); err != nil {
