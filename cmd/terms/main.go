@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 
 	"github.com/mewmew/speak/terminals"
 	"github.com/pkg/errors"
@@ -34,11 +35,14 @@ func main() {
 		start string
 		// Output path.
 		output string
+		// Comma-separated list of terminals to ignore (e.g. whitespace,
+		// comments).
+		skip commaSepList
 	)
 	flag.BoolVar(&indent, "indent", false, "indent JSON output")
 	flag.StringVar(&output, "o", "", "output path")
 	flag.StringVar(&start, "start", "Program", "initial production rule of the grammar")
-	//flag.StringVar(&skip, "skip", "skip", "comma-separated list of terminals to ignore (e.g. whitespace, comments)")
+	flag.Var(&skip, "skip", "comma-separated list of terminals to ignore (e.g. whitespace, comments)")
 	flag.Usage = usage
 	flag.Parse()
 	if flag.NArg() != 1 {
@@ -49,14 +53,14 @@ func main() {
 
 	// Extract regular expressions for the terminators of the input grammar, and
 	// output them as JSON.
-	if err := outputTerms(grammarPath, start, output, indent); err != nil {
+	if err := outputTerms(grammarPath, start, output, indent, skip); err != nil {
 		log.Fatal(err)
 	}
 }
 
 // outputTerms extract regular expressions for the terminators of the input
 // grammar, and outputs them as JSON.
-func outputTerms(grammarPath, start, output string, indent bool) error {
+func outputTerms(grammarPath, start, output string, indent bool, skip []string) error {
 	// Parse the grammar.
 	f, err := os.Open(grammarPath)
 	if err != nil {
@@ -68,7 +72,7 @@ func outputTerms(grammarPath, start, output string, indent bool) error {
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	if err := validate(grammar, start); err != nil {
+	if err := validate(grammar, start, skip); err != nil {
 		return errors.WithStack(err)
 	}
 
@@ -87,11 +91,32 @@ func outputTerms(grammarPath, start, output string, indent bool) error {
 		}
 		jsonTerms.Names = append(jsonTerms.Names, lex)
 	}
-	for id := range terms.tokens {
-		jsonTerms.Tokens = append(jsonTerms.Tokens, id)
+	for id, term := range terms.tokens {
+		reg, err := regexpString(grammar, term)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+		lex := &terminals.Lexeme{
+			ID:  id,
+			Reg: reg,
+		}
+		jsonTerms.Tokens = append(jsonTerms.Tokens, lex)
+	}
+	for _, id := range skip {
+		prod := grammar[id]
+		reg, err := regexpString(grammar, prod.Expr)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+		lex := &terminals.Lexeme{
+			ID:  id,
+			Reg: reg,
+		}
+		jsonTerms.Skip = append(jsonTerms.Skip, lex)
 	}
 	sort.Sort(jsonTerms.Names)
-	sort.Strings(jsonTerms.Tokens)
+	sort.Sort(jsonTerms.Tokens)
+	sort.Sort(jsonTerms.Skip)
 
 	// Print the JSON output to stdout or the path specified by the "-o" flag.
 	w := os.Stdout
@@ -106,5 +131,21 @@ func outputTerms(grammarPath, start, output string, indent bool) error {
 	if err := terminals.Encode(w, jsonTerms, indent); err != nil {
 		return errors.WithStack(err)
 	}
+	return nil
+}
+
+// commaSepList implements the flag.Value interface for comma-separated list of
+// strings.
+type commaSepList []string
+
+// String returns the comma-separated string representation of v.
+func (v *commaSepList) String() string {
+	return strings.Join(*v, ",")
+}
+
+// Set sets v to the list of strings represented by s.
+func (v *commaSepList) Set(s string) error {
+	ss := strings.Split(s, ",")
+	*v = commaSepList(ss)
 	return nil
 }

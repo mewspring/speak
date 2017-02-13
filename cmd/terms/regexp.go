@@ -63,12 +63,9 @@ func regexp(grammar ebnf.Grammar, expr ebnf.Expression) *syntax.Regexp {
 		}
 	case *ebnf.Group:
 		// (body)
-		sub := regexp(grammar, expr.Body)
-		subs := []*syntax.Regexp{sub}
-		return &syntax.Regexp{
-			Op:  syntax.OpCapture,
-			Sub: subs,
-		}
+		//	Return body of group to enforce non-capturing group; i.e.
+		//    (?:body)
+		return regexp(grammar, expr.Body)
 	case *ebnf.Option:
 		// [body]
 		sub := regexp(grammar, expr.Body)
