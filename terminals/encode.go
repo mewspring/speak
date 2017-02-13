@@ -15,7 +15,8 @@ func Encode(w io.Writer, terms *Terminals, indent bool) error {
 		enc.SetIndent("", "\t")
 	}
 	sort.Sort(terms.Names)
-	sort.Strings(terms.Tokens)
+	sort.Sort(terms.Tokens)
+	sort.Sort(terms.Skip)
 	if err := enc.Encode(terms); err != nil {
 		return errors.WithStack(err)
 	}

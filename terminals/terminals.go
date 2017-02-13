@@ -5,9 +5,11 @@ package terminals
 // Terminals represents the terminals of a grammar.
 type Terminals struct {
 	// Terminal names.
-	Names Lexemes `json:"names"`
+	Names Lexemes `json:"names,emitempty"`
 	// Terminal tokens.
-	Tokens []string `json:"tokens"`
+	Tokens Lexemes `json:"tokens,emitempty"`
+	// Ignored terminals.
+	Skip Lexemes `json:"skip,emitempty"`
 }
 
 // Lexeme represents a lexeme of the grammar.

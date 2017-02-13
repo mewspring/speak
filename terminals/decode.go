@@ -12,13 +12,15 @@ import (
 
 // Decode decodes the terminals of a grammar, reading JSON input from r.
 func Decode(r io.Reader) (*Terminals, error) {
+	br := bufio.NewReader(r)
+	dec := json.NewDecoder(br)
 	terms := &Terminals{}
-	dec := json.NewDecoder(r)
 	if err := dec.Decode(&terms); err != nil {
 		return nil, errors.WithStack(err)
 	}
 	sort.Sort(terms.Names)
-	sort.Strings(terms.Tokens)
+	sort.Sort(terms.Tokens)
+	sort.Sort(terms.Skip)
 	return terms, nil
 }
 
@@ -29,6 +31,5 @@ func DecodeFile(path string) (*Terminals, error) {
 		return nil, errors.WithStack(err)
 	}
 	defer f.Close()
-	br := bufio.NewReader(f)
-	return Decode(br)
+	return Decode(f)
 }
