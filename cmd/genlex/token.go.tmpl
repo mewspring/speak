@@ -24,6 +24,9 @@ func (tok *Token) String() string {
 // ID is the set of lexical tokens of the source language.
 type ID int
 
+// None represents a non-existent token ID.
+const None ID = 0
+
 // Minimum and maximum token ID for each category of tokens, as specified by the
 // language grammar.
 const (
@@ -61,8 +64,13 @@ func (id ID) IsSkip() bool {
 	return minSkip <= id && id <= maxSkip
 }
 
+// NTokens specifies the number of unique token IDs recognized by the language
+// grammar.
+const NTokens = {{ .NumTokens }}
+
 // IDs specifies the string representation of each token ID.
 var IDs = [...]string{
+	"NONE(0)",
 {{- range .IDs }}
 	"{{ . }}",
 {{- end }}

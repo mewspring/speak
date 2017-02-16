@@ -134,44 +134,44 @@ func parseJSON(jsonPath string) (tokenData map[string]interface{}, regs []string
 	}
 	var ids []string
 	tokenData = make(map[string]interface{})
-	minName := -1
-	maxName := -1
-	minToken := -1
-	maxToken := -1
-	minSkip := -1
-	maxSkip := -1
+	minName := 0
+	maxName := 0
+	minToken := 0
+	maxToken := 0
+	minSkip := 0
+	maxSkip := 0
 	if len(terms.Names) > 0 {
-		minName = len(ids)
+		minName = len(ids) + 1
 	}
 	for _, term := range terms.Names {
-		id := fmt.Sprintf("name(%d, `%s`)", len(ids), term.ID)
+		id := fmt.Sprintf("name(%d, `%s`)", len(ids)+1, term.ID)
 		ids = append(ids, id)
 		regs = append(regs, term.Reg)
 	}
 	if len(terms.Names) > 0 {
-		maxName = len(ids) - 1
+		maxName = len(ids)
 	}
 	if len(terms.Tokens) > 0 {
-		minToken = len(ids)
+		minToken = len(ids) + 1
 	}
 	for _, term := range terms.Tokens {
-		id := fmt.Sprintf("token(%d, `%s`)", len(ids), term.ID)
+		id := fmt.Sprintf("token(%d, `%s`)", len(ids)+1, term.ID)
 		ids = append(ids, id)
 		regs = append(regs, term.Reg)
 	}
 	if len(terms.Tokens) > 0 {
-		maxToken = len(ids) - 1
+		maxToken = len(ids)
 	}
 	if len(terms.Skip) > 0 {
-		minSkip = len(ids)
+		minSkip = len(ids) + 1
 	}
 	for _, term := range terms.Skip {
-		id := fmt.Sprintf("skip(%d, `%s`)", len(ids), term.ID)
+		id := fmt.Sprintf("skip(%d, `%s`)", len(ids)+1, term.ID)
 		ids = append(ids, id)
 		regs = append(regs, term.Reg)
 	}
 	if len(terms.Skip) > 0 {
-		maxSkip = len(ids) - 1
+		maxSkip = len(ids)
 	}
 	tokenData["MinName"] = minName
 	tokenData["MaxName"] = maxName
@@ -179,6 +179,7 @@ func parseJSON(jsonPath string) (tokenData map[string]interface{}, regs []string
 	tokenData["MaxToken"] = maxToken
 	tokenData["MinSkip"] = minSkip
 	tokenData["MaxSkip"] = maxSkip
+	tokenData["NumTokens"] = len(ids)
 	tokenData["IDs"] = ids
 	return tokenData, regs, nil
 }

@@ -92,7 +92,7 @@ func (l *Lexer) Scan() (*token.Token, error) {
 // input.
 func locateTokens(input []byte, loc []int) (n int, id token.ID, err error) {
 	n = -1
-	for i := 0; i < len(token.IDs); i++ {
+	for i := 0; i < token.NTokens; i++ {
 		start := loc[2*i]
 		if start == -1 {
 			continue
@@ -105,7 +105,7 @@ func locateTokens(input []byte, loc []int) (n int, id token.ID, err error) {
 			return 0, 0, errors.Errorf("ambiguity detected; input matches both token %q and token %q", input[:n], input[:end])
 		}
 		n = end
-		id = token.ID(i)
+		id = token.ID(i+1)
 	}
 	if n == -1 {
 		// no matching token located.
@@ -125,7 +125,7 @@ func tokenLocs(input []byte) ([]int, error) {
 	// Validate submatch indices length; expecting two indices - start and end -
 	// per submatch, and in total 2 + (number of tokens) submatches.
 	got := len(loc)
-	want := 2 * (2 + len(token.IDs))
+	want := 2 * (2 + token.NTokens)
 	if got != want {
 		return nil, errors.Errorf("invalid number of submatches; expected %d, got %d", want, got)
 	}

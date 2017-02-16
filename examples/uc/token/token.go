@@ -24,15 +24,18 @@ func (tok *Token) String() string {
 // ID is the set of lexical tokens of the source language.
 type ID int
 
+// None represents a non-existent token ID.
+const None ID = 0
+
 // Minimum and maximum token ID for each category of tokens, as specified by the
 // language grammar.
 const (
-	minName  ID = 0
-	maxName  ID = 2
-	minToken ID = 3
-	maxToken ID = 28
-	minSkip  ID = 29
-	maxSkip  ID = 30
+	minName  ID = 1
+	maxName  ID = 3
+	minToken ID = 4
+	maxToken ID = 29
+	minSkip  ID = 30
+	maxSkip  ID = 31
 )
 
 // String returns the string represenatation of the token ID.
@@ -61,37 +64,42 @@ func (id ID) IsSkip() bool {
 	return minSkip <= id && id <= maxSkip
 }
 
+// NTokens specifies the number of unique token IDs recognized by the language
+// grammar.
+const NTokens = 31
+
 // IDs specifies the string representation of each token ID.
 var IDs = [...]string{
-	"name(0, `char_lit`)",
-	"name(1, `ident`)",
-	"name(2, `int_lit`)",
-	"token(3, `!`)",
-	"token(4, `!=`)",
-	"token(5, `&&`)",
-	"token(6, `(`)",
-	"token(7, `)`)",
-	"token(8, `*`)",
-	"token(9, `+`)",
-	"token(10, `,`)",
-	"token(11, `-`)",
-	"token(12, `/`)",
-	"token(13, `;`)",
-	"token(14, `<`)",
-	"token(15, `<=`)",
-	"token(16, `=`)",
-	"token(17, `==`)",
-	"token(18, `>`)",
-	"token(19, `>=`)",
-	"token(20, `[`)",
-	"token(21, `]`)",
-	"token(22, `else`)",
-	"token(23, `if`)",
-	"token(24, `return`)",
-	"token(25, `typedef`)",
-	"token(26, `while`)",
-	"token(27, `{`)",
-	"token(28, `}`)",
-	"skip(29, `comment`)",
-	"skip(30, `whitespace`)",
+	"NONE(0)",
+	"name(1, `char_lit`)",
+	"name(2, `ident`)",
+	"name(3, `int_lit`)",
+	"token(4, `!`)",
+	"token(5, `!=`)",
+	"token(6, `&&`)",
+	"token(7, `(`)",
+	"token(8, `)`)",
+	"token(9, `*`)",
+	"token(10, `+`)",
+	"token(11, `,`)",
+	"token(12, `-`)",
+	"token(13, `/`)",
+	"token(14, `;`)",
+	"token(15, `<`)",
+	"token(16, `<=`)",
+	"token(17, `=`)",
+	"token(18, `==`)",
+	"token(19, `>`)",
+	"token(20, `>=`)",
+	"token(21, `[`)",
+	"token(22, `]`)",
+	"token(23, `else`)",
+	"token(24, `if`)",
+	"token(25, `return`)",
+	"token(26, `typedef`)",
+	"token(27, `while`)",
+	"token(28, `{`)",
+	"token(29, `}`)",
+	"skip(30, `comment`)",
+	"skip(31, `whitespace`)",
 }

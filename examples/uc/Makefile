@@ -9,7 +9,9 @@ lexer: uc.json
 	genlex $<
 
 clean:
-	rm -rf token lexer
+	rm -f token/token.go lexer/lexer.go
+	-rmdir --ignore-fail-on-non-empty token
+	-rmdir --ignore-fail-on-non-empty lexer
 	rm -f uc.json
 
 .PHONY: all clean
