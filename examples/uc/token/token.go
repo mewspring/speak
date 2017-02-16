@@ -22,14 +22,43 @@ func (tok *Token) String() string {
 }
 
 // ID is the set of lexical tokens of the source language.
-type ID uint
+type ID int
+
+// Minimum and maximum token ID for each category of tokens, as specified by the
+// language grammar.
+const (
+	minName  ID = 0
+	maxName  ID = 2
+	minToken ID = 3
+	maxToken ID = 28
+	minSkip  ID = 29
+	maxSkip  ID = 30
+)
 
 // String returns the string represenatation of the token ID.
 func (id ID) String() string {
 	if int(id) < len(IDs) {
 		return IDs[id]
 	}
-	return fmt.Sprintf("<unknown token ID %d>", uint(id))
+	return fmt.Sprintf("<unknown token ID %d>", int(id))
+}
+
+// IsName reports whether the given token ID is represented by a production name
+// in the language grammar.
+func (id ID) IsName() bool {
+	return minName <= id && id <= maxName
+}
+
+// IsToken reports whether the given token ID is represented by a token literal
+// in the language grammar.
+func (id ID) IsToken() bool {
+	return minToken <= id && id <= maxToken
+}
+
+// IsSkip reports whether the given token ID is part of the ignored set of
+// tokens in the language grammar.
+func (id ID) IsSkip() bool {
+	return minSkip <= id && id <= maxSkip
 }
 
 // IDs specifies the string representation of each token ID.

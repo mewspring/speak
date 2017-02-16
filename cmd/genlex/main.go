@@ -37,7 +37,7 @@ func main() {
 	jsonPath := flag.Arg(0)
 
 	// Parse regular expressions for terminators from JSON input.
-	ids, regs, err := parseJSON(jsonPath)
+	tokenData, regs, err := parseJSON(jsonPath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -51,14 +51,14 @@ func main() {
 
 	// Generate lexer based on the regular expression identifying for
 	// terminators.
-	if err := genLexer(ids, reg); err != nil {
+	if err := genLexer(tokenData, reg); err != nil {
 		log.Fatal(err)
 	}
 }
 
 // genLexer generates a lexer based on the regular expression for identifying
 // terminators of the input grammar.
-func genLexer(ids []string, reg string) error {
+func genLexer(tokenData map[string]interface{}, reg string) error {
 	// Parse templates.
 	dir, err := goutil.SrcDir("github.com/mewmew/speak/cmd/genlex")
 	if err != nil {
@@ -82,7 +82,7 @@ func genLexer(ids []string, reg string) error {
 		return errors.WithStack(err)
 	}
 	defer f1.Close()
-	if err := t1.Execute(f1, ids); err != nil {
+	if err := t1.Execute(f1, tokenData); err != nil {
 		return errors.WithStack(err)
 	}
 
@@ -103,11 +103,11 @@ func genLexer(ids []string, reg string) error {
 		return errors.WithStack(err)
 	}
 	defer f2.Close()
-	m := map[string]string{
+	lexerData := map[string]string{
 		"ImportPath": tokenImportPath,
 		"Regexp":     reg,
 	}
-	if err := t2.Execute(f2, m); err != nil {
+	if err := t2.Execute(f2, lexerData); err != nil {
 		return errors.WithStack(err)
 	}
 	return nil
@@ -127,25 +127,58 @@ func createRegexp(regs []string) (string, error) {
 
 // parseJSON parses and returns the regular expressions for terminators and
 // their associated IDs, based on the given JSON input.
-func parseJSON(jsonPath string) (ids, regs []string, err error) {
+func parseJSON(jsonPath string) (tokenData map[string]interface{}, regs []string, err error) {
 	terms, err := terminals.DecodeFile(jsonPath)
 	if err != nil {
 		return nil, nil, errors.WithStack(err)
+	}
+	var ids []string
+	tokenData = make(map[string]interface{})
+	minName := -1
+	maxName := -1
+	minToken := -1
+	maxToken := -1
+	minSkip := -1
+	maxSkip := -1
+	if len(terms.Names) > 0 {
+		minName = len(ids)
 	}
 	for _, term := range terms.Names {
 		id := fmt.Sprintf("name(%d, `%s`)", len(ids), term.ID)
 		ids = append(ids, id)
 		regs = append(regs, term.Reg)
 	}
+	if len(terms.Names) > 0 {
+		maxName = len(ids) - 1
+	}
+	if len(terms.Tokens) > 0 {
+		minToken = len(ids)
+	}
 	for _, term := range terms.Tokens {
 		id := fmt.Sprintf("token(%d, `%s`)", len(ids), term.ID)
 		ids = append(ids, id)
 		regs = append(regs, term.Reg)
+	}
+	if len(terms.Tokens) > 0 {
+		maxToken = len(ids) - 1
+	}
+	if len(terms.Skip) > 0 {
+		minSkip = len(ids)
 	}
 	for _, term := range terms.Skip {
 		id := fmt.Sprintf("skip(%d, `%s`)", len(ids), term.ID)
 		ids = append(ids, id)
 		regs = append(regs, term.Reg)
 	}
-	return ids, regs, nil
+	if len(terms.Skip) > 0 {
+		maxSkip = len(ids) - 1
+	}
+	tokenData["MinName"] = minName
+	tokenData["MaxName"] = maxName
+	tokenData["MinToken"] = minToken
+	tokenData["MaxToken"] = maxToken
+	tokenData["MinSkip"] = minSkip
+	tokenData["MaxSkip"] = maxSkip
+	tokenData["IDs"] = ids
+	return tokenData, regs, nil
 }
