@@ -1,10 +1,11 @@
+// TODO: optimize by calculating first sets.
+
 // Speak parses input by runtime evaluation of language grammars expressed in
 // EBNF.
 package main
 
 import (
 	"bufio"
-	"encoding/hex"
 	"flag"
 	"fmt"
 	"log"
@@ -92,9 +93,7 @@ func speak(grammar ebnf.Grammar, start string, input []byte) error {
 		input:   input,
 	}
 	ret := p.evalProd(p.grammar[start])
-	fmt.Println(hex.Dump(p.input[p.pos:]))
 	p.skip()
-	fmt.Println(hex.Dump(p.input[p.pos:]))
 	dbg.Println("speak:")
 	dbg.Printf("   speak.ret: %v", ret)
 	dbg.Printf("   speak.len: %v %v", len(input), p.pos)
@@ -122,14 +121,13 @@ func (p *parser) skip() {
 	}
 	p.skipping = true
 	if skip, ok := p.grammar["skip"]; ok {
+		dbg.Println("skip:", exprString(skip))
 		// record pos, and reset if no whitespace found.
-		bak := p.pos
-		fmt.Println("skip.bak:", bak)
 		for {
+			bak := p.pos
 			if !p.evalExpr(skip.Expr) {
 				// reset pos.
 				p.pos = bak
-				fmt.Println("skip.p.pos:", p.pos)
 				break
 			}
 		}
