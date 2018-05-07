@@ -1,11 +1,93 @@
-lower = "a" … "z" .
-ident = { lower } .
+/*
+_ascii_letter_upper
+	= "A" … "Z"
+.
 
-upper = "A" … "Z" .
-local = { upper } .
+_ascii_letter_lower
+	= "a" … "z"
+.
 
-Start = { Var | Foo } .
+_ascii_letter
+	= _ascii_letter_upper
+	| _ascii_letter_lower
+.
 
-Var = ident .
+_letter
+	= _ascii_letter
+	| "$"
+	| "-"
+	| "."
+	| "_"
+.
 
-Foo = local .
+_decimal_digit
+	= "0" … "9"
+.
+
+_name
+	= _letter { _letter | _decimal_digit }
+.
+
+_quoted_name
+	= _quoted_string
+.
+
+_id
+	= _decimals
+.
+
+global_ident
+	= _global_name
+	| _global_id
+.
+
+_global_name
+	= "@" ( _name | _quoted_name )
+.
+
+_global_id
+	= "@" _id
+.
+
+local_ident
+	= _local_name
+	| _local_id
+.
+
+_local_name
+	= "%" ( _name | _quoted_name )
+.
+
+_local_id
+	= "%" _id
+.
+
+_decimals
+	= _decimal_digit { _decimal_digit }
+.
+
+_escape_char
+	= "\\" ("\x00" … "\xFF")
+.
+
+_quoted_char
+	= "\x00" … "\x21"
+	// skip "
+	| "\x23" … "\x5B"
+	| _escape_char
+	| "\x5D" … "\xFF"
+.
+
+_quoted_string
+	= "\"" { _quoted_char } "\""
+.
+*/
+
+global = "foo" .
+local = "bar" .
+
+Module = { Global [ Local ] } .
+
+Global = global .
+
+Local = local .
