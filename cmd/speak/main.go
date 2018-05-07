@@ -46,7 +46,7 @@ func main() {
 		// Start production rule.
 		start string
 	)
-	flag.StringVar(&grammarPath, "g", "grammar.ebnf", "path to EBNF grammar")
+	flag.StringVar(&grammarPath, "grammar", "grammar.ebnf", "path to EBNF grammar")
 	flag.StringVar(&start, "start", "", "start production rule")
 	flag.Usage = usage
 	flag.Parse()
@@ -62,6 +62,7 @@ func main() {
 	dbg.Println("start:", start)
 	// Remove skip before validate.
 	skip, ok := grammar["skip"]
+	// TODO: Remove skip production rules recursively before validate.
 	if ok {
 		delete(grammar, "skip")
 	}
