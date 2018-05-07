@@ -1,207 +1,210 @@
 // ### [ Lexical part ] ########################################################
 
 _ascii_letter_upper
-	: 'A' - 'Z'
-;
+	= "A" … "Z"
+.
 
 _ascii_letter_lower
-	: 'a' - 'z'
-;
+	= "a" … "z"
+.
 
 _ascii_letter
-	: _ascii_letter_upper
+	= _ascii_letter_upper
 	| _ascii_letter_lower
-;
+.
 
 _letter
-	: _ascii_letter
-	| '$'
-	| '-'
-	| '.'
-	| '_'
-;
+	= _ascii_letter
+	| "$"
+	| "-"
+	| "."
+	| "_"
+.
 
 _escape_letter
-	: _letter
-	| '\\'
-;
+	= _letter
+	| "\\"
+.
 
 _decimal_digit
-	: '0' - '9'
-;
+	= "0" … "9"
+.
 
 _hex_digit
-	: _decimal_digit
-	| 'A' - 'F'
-	| 'a' - 'f'
-;
+	= _decimal_digit
+	| "A" … "F"
+	| "a" … "f"
+.
 
-!comment : ';' { . } '\n' ;
-
-!whitespace : '\x00' | ' ' | '\t' | '\r' | '\n' ;
+skip
+	// line comments.
+	= ";" ("\x00" … "\x09" | "\x0B" … "\xFF") "\n"
+	// whitespace
+	| ("\x00" | " " | "\t" | "\r" | "\n")
+.
 
 // === [ Identifiers ] =========================================================
 
 _name
-	: _letter { _letter | _decimal_digit }
-;
+	= _letter { _letter | _decimal_digit }
+.
 
 _escape_name
-	: _escape_letter { _escape_letter | _decimal_digit }
-;
+	= _escape_letter { _escape_letter | _decimal_digit }
+.
 
 _quoted_name
-	: _quoted_string
-;
+	= _quoted_string
+.
 
 _id
-	: _decimals
-;
+	= _decimals
+.
 
 // --- [ Global identifiers ] --------------------------------------------------
 
 global_ident
-	: _global_name
+	= _global_name
 	| _global_id
-;
+.
 
 _global_name
-	: '@' ( _name | _quoted_name )
-;
+	= "@" ( _name | _quoted_name )
+.
 
 _global_id
-	: '@' _id
-;
+	= "@" _id
+.
 
 // --- [ Local identifiers ] ---------------------------------------------------
 
 local_ident
-	: _local_name
+	= _local_name
 	| _local_id
-;
+.
 
 _local_name
-	: '%' ( _name | _quoted_name )
-;
+	= "%" ( _name | _quoted_name )
+.
 
 _local_id
-	: '%' _id
-;
+	= "%" _id
+.
 
 // --- [ Labels ] --------------------------------------------------------------
 
 //   Label             [-a-zA-Z$._0-9]+:
 
 label_ident
-	: ( _letter | _decimal_digit ) { _letter | _decimal_digit } ':'
-	| _quoted_string ':'
-;
+	= ( _letter | _decimal_digit ) { _letter | _decimal_digit } ":"
+	| _quoted_string ":"
+.
 
 // --- [ Attribute group identifiers ] -----------------------------------------
 
 attr_group_id
-	: '#' _id
-;
+	= "#" _id
+.
 
 // --- [ Comdat identifiers ] --------------------------------------------------
 
 comdat_name
-	: '$' ( _name | _quoted_name )
-;
+	= "$" ( _name | _quoted_name )
+.
 
 // --- [ Metadata identifiers ] ------------------------------------------------
 
 metadata_name
-	: '!' _escape_name
-;
+	= "!" _escape_name
+.
 
 metadata_id
-	: '!' _id
-;
+	= "!" _id
+.
 
 // DW_TAG_foo
 dwarf_tag
-	: 'D' 'W' '_' 'T' 'A' 'G' '_' { _ascii_letter | _decimal_digit | '_' }
-;
+	= "D" "W" "_" "T" "A" "G" "_" { _ascii_letter | _decimal_digit | "_" }
+.
 
 // DW_ATE_foo
 dwarf_att_encoding
-	: 'D' 'W' '_' 'A' 'T' 'E' '_' { _ascii_letter | _decimal_digit | '_' }
-;
+	= "D" "W" "_" "A" "T" "E" "_" { _ascii_letter | _decimal_digit | "_" }
+.
 
 // DIFlagFoo
 di_flag
-	: 'D' 'I' 'F' 'l' 'a' 'g' { _ascii_letter | _decimal_digit | '_' }
-;
+	= "D" "I" "F" "l" "a" "g" { _ascii_letter | _decimal_digit | "_" }
+.
 
 // DW_LANG_foo
 dwarf_lang
-	: 'D' 'W' '_' 'L' 'A' 'N' 'G' '_' { _ascii_letter | _decimal_digit | '_' }
-;
+	= "D" "W" "_" "L" "A" "N" "G" "_" { _ascii_letter | _decimal_digit | "_" }
+.
 
 // DW_CC_foo
 dwarf_cc
-	: 'D' 'W' '_' 'C' 'C' '_' { _ascii_letter | _decimal_digit | '_' }
-;
+	= "D" "W" "_" "C" "C" "_" { _ascii_letter | _decimal_digit | "_" }
+.
 
 // CSK_foo
 checksum_kind
-	: 'C' 'S' 'K' '_' { _ascii_letter | _decimal_digit | '_' }
-;
+	= "C" "S" "K" "_" { _ascii_letter | _decimal_digit | "_" }
+.
 
 // DW_VIRTUALITY_foo
 dwarf_virtuality
-	: 'D' 'W' '_' 'V' 'I' 'R' 'T' 'U' 'A' 'L' 'I' 'T' 'Y' '_' { _ascii_letter | _decimal_digit | '_' }
-;
+	= "D" "W" "_" "V" "I" "R" "T" "U" "A" "L" "I" "T" "Y" "_" { _ascii_letter | _decimal_digit | "_" }
+.
 
 // DW_MACINFO_foo
 dwarf_macinfo
-	: 'D' 'W' '_' 'M' 'A' 'C' 'I' 'N' 'F' 'O' '_' { _ascii_letter | _decimal_digit | '_' }
-;
+	= "D" "W" "_" "M" "A" "C" "I" "N" "F" "O" "_" { _ascii_letter | _decimal_digit | "_" }
+.
 
 // DW_OP_foo
 dwarf_op
-	: 'D' 'W' '_' 'O' 'P' '_' { _ascii_letter | _decimal_digit | '_' }
-;
+	= "D" "W" "_" "O" "P" "_" { _ascii_letter | _decimal_digit | "_" }
+.
 
 // === [ Integer literals ] ====================================================
 
 //   Integer           [-]?[0-9]+
 
 int_lit
-	: _decimal_lit
-;
+	= _decimal_lit
+.
 
 _decimal_lit
-	: [ '-' ] _decimals
-;
+	= [ "-" ] _decimals
+.
 
 _decimals
-	: _decimal_digit { _decimal_digit }
-;
+	= _decimal_digit { _decimal_digit }
+.
 
 // === [ Floating-point literals ] =============================================
 
 //   FPConstant        [-+]?[0-9]+[.][0-9]*([eE][-+]?[0-9]+)?
 
 float_lit
-	: _frac_lit
+	= _frac_lit
 	| _sci_lit
 	| _float_hex_lit
-;
+.
 
 _frac_lit
-	: [ _sign ] _decimals '.' { _decimal_digit }
-;
+	= [ _sign ] _decimals "." { _decimal_digit }
+.
 
 _sign
-	: '+'
-	| '-'
-;
+	= "+"
+	| "-"
+.
 
 _sci_lit
-	: _frac_lit ( 'e' | 'E' ) [ _sign ] _decimals
-;
+	= _frac_lit ( "e" | "E" ) [ _sign ] _decimals
+.
 
 //   HexFPConstant     0x[0-9A-Fa-f]+     // 16 hex digits
 //   HexFP80Constant   0xK[0-9A-Fa-f]+    // 20 hex digits
@@ -210,28 +213,40 @@ _sci_lit
 //   HexHalfConstant   0xH[0-9A-Fa-f]+    // 4 hex digits
 
 _float_hex_lit
-	:  '0' 'x'      _hex_digit { _hex_digit }
-	|  '0' 'x' 'K'  _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit
-	|  '0' 'x' 'L'  _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit
-	|  '0' 'x' 'M'  _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit
-	|  '0' 'x' 'H'  _hex_digit _hex_digit _hex_digit _hex_digit
-;
+	=  "0" "x"      _hex_digit { _hex_digit }
+	|  "0" "x" "K"  _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit
+	|  "0" "x" "L"  _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit
+	|  "0" "x" "M"  _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit _hex_digit
+	|  "0" "x" "H"  _hex_digit _hex_digit _hex_digit _hex_digit
+.
 
 // === [ String literals ] =====================================================
 
 string_lit
-	: _quoted_string
-;
+	= _quoted_string
+.
+
+_escape_char
+	= "\\" ("\x00" … "\xFF")
+.
+
+_quoted_char
+	= "\x00" … "\x21"
+	// skip "
+	| "\x23" … "\x5B"
+	| _escape_char
+	| "\x5D" … "\xFF"
+.
 
 _quoted_string
-	: '"' { . } '"'
-;
+	= "\"" { _quoted_char } "\""
+.
 
 // === [ Types ] ===============================================================
 
 int_type
-	: 'i' _decimals
-;
+	= "i" _decimals
+.
 
 // ### [ Syntax part ] #########################################################
 
@@ -248,42 +263,16 @@ int_type
 //
 //   module ::= toplevelentity*
 
-<<
-import (
-	"github.com/mewmew/l/asm/ast"
-	"github.com/mewmew/l/asm/internal/astx"
-	"github.com/mewmew/l/ir"
-	"github.com/mewmew/l/ir/constant"
-	"github.com/mewmew/l/ir/metadata"
-	"github.com/mewmew/l/ir/types"
-	"github.com/mewmew/l/ir/value"
-)
->>
-
 Module
-	: TopLevelEntities
-	<< &ast.Module{Entities: $0.([]ast.TopLevelEntity)}, nil >>
-;
-
-TopLevelEntities
-	: empty
-	<< ([]ast.TopLevelEntity)(nil), nil >>
-	| TopLevelEntityList
-;
-
-TopLevelEntityList
-	: TopLevelEntity
-	<< []ast.TopLevelEntity{$0.(ast.TopLevelEntity)}, nil >>
-	| TopLevelEntityList TopLevelEntity
-	<< append($0.([]ast.TopLevelEntity), $1.(ast.TopLevelEntity)), nil >>
-;
+	= { TopLevelEntity }
+.
 
 // --- [ Top-level Entities ] --------------------------------------------------
 
 // ref: ParseTopLevelEntities
 
 TopLevelEntity
-	: SourceFilename
+	= SourceFilename
 	| TargetDefinition
 	| ModuleAsm
 	| TypeDef
@@ -298,7 +287,7 @@ TopLevelEntity
 	| MetadataDef
 	| UseListOrder
 	| UseListOrderBB
-;
+.
 
 // ~~~ [ Source Filename ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -306,12 +295,11 @@ TopLevelEntity
 
 // ref: ParseSourceFileName
 //
-//   ::= 'source_filename' '=' STRINGCONSTANT
+//   ::= "source_filename" "=" STRINGCONSTANT
 
 SourceFilename
-	: "source_filename" "=" StringLit
-	<< &ir.SourceFilename{Name: $2.(string)}, nil >>
-;
+	= "source_filename" "=" StringLit
+.
 
 // ~~~ [ Target Definition ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -320,15 +308,13 @@ SourceFilename
 
 // ref: ParseTargetDefinition
 //
-//   ::= 'target' 'triple' '=' STRINGCONSTANT
-//   ::= 'target' 'datalayout' '=' STRINGCONSTANT
+//   ::= "target" "triple" "=" STRINGCONSTANT
+//   ::= "target" "datalayout" "=" STRINGCONSTANT
 
 TargetDefinition
-	: "target" "datalayout" "=" StringLit
-	<< &ir.DataLayout{DataLayout: $3.(string)}, nil >>
+	= "target" "datalayout" "=" StringLit
 	| "target" "triple" "=" StringLit
-	<< &ir.TargetTriple{TargetTriple: $3.(string)}, nil >>
-;
+.
 
 // ~~~ [ Module-level Inline Assembly ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -336,12 +322,11 @@ TargetDefinition
 
 // ref: ParseModuleAsm
 //
-//   ::= 'module' 'asm' STRINGCONSTANT
+//   ::= "module" "asm" STRINGCONSTANT
 
 ModuleAsm
-	: "module" "asm" StringLit
-	<< &ir.ModuleAsm{Asm: $2.(string)}, nil >>
-;
+	= "module" "asm" StringLit
+.
 
 // ~~~ [ Type Defintion ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -349,18 +334,16 @@ ModuleAsm
 
 // ref: ParseUnnamedType
 //
-//   ::= LocalVarID '=' 'type' type
+//   ::= LocalVarID "=" "type" type
 
 // ref: ParseNamedType
 //
-//   ::= LocalVar '=' 'type' type
+//   ::= LocalVar "=" "type" type
 
 TypeDef
-	: LocalIdent "=" "type" OpaqueType
-	<< &ast.NamedType{Name: astx.LocalIdent($0), Type: $3.(types.Type)}, nil >>
+	= LocalIdent "=" "type" OpaqueType
 	| LocalIdent "=" "type" Type
-	<< &ast.NamedType{Name: astx.LocalIdent($0), Type: $3.(types.Type)}, nil >>
-;
+.
 
 // ~~~ [ Comdat Definition ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -369,17 +352,16 @@ TypeDef
 // ref: parseComdat
 
 ComdatDef
-	: ComdatName "=" "comdat" SelectionKind
-	<< &ir.ComdatDef{Name: astx.ComdatName($0), Kind: $3.(ir.SelectionKind)}, nil >>
-;
+	= ComdatName "=" "comdat" SelectionKind
+.
 
 SelectionKind
-	: "any"            << ir.SelectionKindAny, nil >>
-	| "exactmatch"     << ir.SelectionKindExactMatch, nil >>
-	| "largest"        << ir.SelectionKindLargest, nil >>
-	| "noduplicates"   << ir.SelectionKindNoDuplicates, nil >>
-	| "samesize"       << ir.SelectionKindSameSize, nil >>
-;
+	= "any"
+	| "exactmatch"
+	| "largest"
+	| "noduplicates"
+	| "samesize"
+.
 
 // ~~~ [ Global Variable Declaration ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -391,21 +373,21 @@ SelectionKind
 //   OptionalLinkage OptionalPreemptionSpecifier OptionalVisibility
 //   OptionalDLLStorageClass
 //                                                     ...   -> global variable
-//   GlobalID '=' OptionalVisibility (ALIAS | IFUNC) ...
-//   GlobalID '=' OptionalLinkage OptionalPreemptionSpecifier OptionalVisibility
+//   GlobalID "=" OptionalVisibility (ALIAS | IFUNC) ...
+//   GlobalID "=" OptionalLinkage OptionalPreemptionSpecifier OptionalVisibility
 //                OptionalDLLStorageClass
 //                                                     ...   -> global variable
 
 // ref: ParseNamedGlobal
 //
-//   GlobalVar '=' OptionalVisibility (ALIAS | IFUNC) ...
-//   GlobalVar '=' OptionalLinkage OptionalPreemptionSpecifier
+//   GlobalVar "=" OptionalVisibility (ALIAS | IFUNC) ...
+//   GlobalVar "=" OptionalLinkage OptionalPreemptionSpecifier
 //                 OptionalVisibility OptionalDLLStorageClass
 //                                                     ...   -> global variable
 
 // ref: ParseGlobal
 //
-//   ::= GlobalVar '=' OptionalLinkage OptionalPreemptionSpecifier
+//   ::= GlobalVar "=" OptionalLinkage OptionalPreemptionSpecifier
 //       OptionalVisibility OptionalDLLStorageClass
 //       OptionalThreadLocal OptionalUnnamedAddr OptionalAddrSpace
 //       OptionalExternallyInitialized GlobalType Type Const OptionalAttrs
@@ -415,53 +397,45 @@ SelectionKind
 //       Const OptionalAttrs
 
 GlobalDecl
-	: GlobalIdent "=" ExternLinkage OptPreemptionSpecifier OptVisibility OptDLLStorageClass OptThreadLocal OptUnnamedAddr OptAddrSpace OptExternallyInitialized Immutable Type GlobalAttrs FuncAttrs
-	<< &ir.Global{Name: astx.GlobalIdent($0), Linkage: $2.(ir.Linkage), Preemption: $3.(ir.Preemption), Visibility: $4.(ir.Visibility), DLLStorageClass: $5.(ir.DLLStorageClass), ThreadLocal: $6.(*ir.ThreadLocal), UnnamedAddr: $7.(ir.UnnamedAddr), AddrSpace: $8.(types.AddrSpace), ExternallyInitialized: $9.(bool), Immutable: $10.(bool), ContentType: $11.(types.Type), Section: astx.OptSectionFromGlobalAttrs($12.([]astx.GlobalAttribute)), Comdat: astx.OptComdatFromGlobalAttrs($12.([]astx.GlobalAttribute)), Align: astx.OptAlignFromGlobalAttrs($12.([]astx.GlobalAttribute)), Metadata: astx.MetadataFromGlobalAttrs($12.([]astx.GlobalAttribute)), FuncAttrs: $13.([]ir.FuncAttribute)}, nil >>
-;
+	= GlobalIdent "=" ExternLinkage OptPreemptionSpecifier OptVisibility OptDLLStorageClass OptThreadLocal OptUnnamedAddr OptAddrSpace OptExternallyInitialized Immutable Type GlobalAttrs FuncAttrs
+.
 
 // ~~~ [ Global Variable Definition ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 GlobalDef
-	: GlobalIdent "=" OptLinkage OptPreemptionSpecifier OptVisibility OptDLLStorageClass OptThreadLocal OptUnnamedAddr OptAddrSpace OptExternallyInitialized Immutable Type Constant GlobalAttrs FuncAttrs
-	<< &ir.Global{Name: astx.GlobalIdent($0), Linkage: $2.(ir.Linkage), Preemption: $3.(ir.Preemption), Visibility: $4.(ir.Visibility), DLLStorageClass: $5.(ir.DLLStorageClass), ThreadLocal: $6.(*ir.ThreadLocal), UnnamedAddr: $7.(ir.UnnamedAddr), AddrSpace: $8.(types.AddrSpace), ExternallyInitialized: $9.(bool), Immutable: $10.(bool), ContentType: $11.(types.Type), Init: astx.TypeConst($11, $12), Section: astx.OptSectionFromGlobalAttrs($13.([]astx.GlobalAttribute)), Comdat: astx.OptComdatFromGlobalAttrs($13.([]astx.GlobalAttribute)), Align: astx.OptAlignFromGlobalAttrs($13.([]astx.GlobalAttribute)), Metadata: astx.MetadataFromGlobalAttrs($13.([]astx.GlobalAttribute)), FuncAttrs: $14.([]ir.FuncAttribute)}, nil >>
-;
+	= GlobalIdent "=" OptLinkage OptPreemptionSpecifier OptVisibility OptDLLStorageClass OptThreadLocal OptUnnamedAddr OptAddrSpace OptExternallyInitialized Immutable Type Constant GlobalAttrs FuncAttrs
+.
 
 OptExternallyInitialized
-	: empty                      << false, nil >>
-	| "externally_initialized"   << true, nil >>
-;
+	= [ "externally_initialized" ]
+.
 
 // ref: ParseGlobalType
 //
-//   ::= 'constant'
-//   ::= 'global'
+//   ::= "constant"
+//   ::= "global"
 
 Immutable
-	: "constant"   << true, nil >>
-	| "global"     << false, nil >>
-;
+	= "constant"
+	| "global"
+.
 
 GlobalAttrs
-	: empty
-	<< ([]astx.GlobalAttribute)(nil), nil >>
-	| "," GlobalAttrList
-	<< $1, nil >>
-;
+	= [ "," GlobalAttrList ]
+.
 
 GlobalAttrList
-	: GlobalAttr
-	<< []astx.GlobalAttribute{$0.(astx.GlobalAttribute)}, nil >>
+	= GlobalAttr
 	| GlobalAttrList "," GlobalAttr
-	<< append($0.([]astx.GlobalAttribute), $2.(astx.GlobalAttribute)), nil >>
-;
+.
 
 GlobalAttr
-	: Section
+	= Section
 	| Comdat
 	| Alignment
 	//   ::= !dbg !57
 	| MetadataAttachment
-;
+.
 
 // ~~~ [ Indirect Symbol Definition ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -470,25 +444,23 @@ GlobalAttr
 
 // ref: parseIndirectSymbol
 //
-//   ::= GlobalVar '=' OptionalLinkage OptionalPreemptionSpecifier
+//   ::= GlobalVar "=" OptionalLinkage OptionalPreemptionSpecifier
 //                     OptionalVisibility OptionalDLLStorageClass
 //                     OptionalThreadLocal OptionalUnnamedAddr
-//                     'alias|ifunc' IndirectSymbol
+//                     "alias|ifunc" IndirectSymbol
 //
 //  IndirectSymbol
 //   ::= TypeAndValue
 
 IndirectSymbolDef
-	: GlobalIdent "=" ExternLinkage OptPreemptionSpecifier OptVisibility OptDLLStorageClass OptThreadLocal OptUnnamedAddr Alias Type "," Type Constant
-	<< &ir.IndirectSymbol{Name: astx.GlobalIdent($0), Linkage: $2.(ir.Linkage), Preemption: $3.(ir.Preemption), Visibility: $4.(ir.Visibility), DLLStorageClass: $5.(ir.DLLStorageClass), ThreadLocal: $6.(*ir.ThreadLocal), UnnamedAddr: $7.(ir.UnnamedAddr), Alias: $8.(bool), Typ: $9.(types.Type), Const: astx.TypeConst($10, $11)}, nil >>
+	= GlobalIdent "=" ExternLinkage OptPreemptionSpecifier OptVisibility OptDLLStorageClass OptThreadLocal OptUnnamedAddr Alias Type "," Type Constant
 	| GlobalIdent "=" OptLinkage OptPreemptionSpecifier OptVisibility OptDLLStorageClass OptThreadLocal OptUnnamedAddr Alias Type "," Type Constant
-	<< &ir.IndirectSymbol{Name: astx.GlobalIdent($0), Linkage: $2.(ir.Linkage), Preemption: $3.(ir.Preemption), Visibility: $4.(ir.Visibility), DLLStorageClass: $5.(ir.DLLStorageClass), ThreadLocal: $6.(*ir.ThreadLocal), UnnamedAddr: $7.(ir.UnnamedAddr), Alias: $8.(bool), Typ: $9.(types.Type), Const: astx.TypeConst($10, $11)}, nil >>
-;
+.
 
 Alias
-	: "alias"   << true, nil >>
-	| "ifunc"   << false, nil >>
-;
+	= "alias"
+	| "ifunc"
+.
 
 // ~~~ [ Function Declaration ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -496,12 +468,11 @@ Alias
 
 // ref: ParseDeclare
 //
-//   ::= 'declare' FunctionHeader
+//   ::= "declare" FunctionHeader
 
 FunctionDecl
-	: "declare" MetadataAttachments OptExternLinkage FunctionHeader
-	<< &ir.Function{Linkage: $2.(ir.Linkage), FunctionHeader: $3.(*ir.FunctionHeader), Metadata: $1.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "declare" MetadataAttachments OptExternLinkage FunctionHeader
+.
 
 // ~~~ [ Function Definition ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -509,61 +480,49 @@ FunctionDecl
 
 // ref: ParseDefine
 //
-//   ::= 'define' FunctionHeader (!dbg !56)* '{' ...
+//   ::= "define" FunctionHeader (!dbg !56)* "{" ...
 
 FunctionDef
-	: "define" OptLinkage FunctionHeader MetadataAttachments FunctionBody
-	<< &ir.Function{Linkage: $1.(ir.Linkage), FunctionHeader: $2.(*ir.FunctionHeader), FunctionBody: $4.(*ir.FunctionBody), Metadata: $3.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "define" OptLinkage FunctionHeader MetadataAttachments FunctionBody
+.
 
 // ref: ParseFunctionHeader
 //
 //   ::= OptionalLinkage OptionalPreemptionSpecifier OptionalVisibility
 //       OptionalCallingConv OptRetAttrs OptUnnamedAddr Type GlobalName
-//       '(' ArgList ')' OptFuncAttrs OptSection OptionalAlign OptGC
+//       "(" ArgList ")" OptFuncAttrs OptSection OptionalAlign OptGC
 //       OptionalPrefix OptionalPrologue OptPersonalityFn
 
 // TODO: Add OptAlignment before OptGC once the LR-1 conflict has been resolved,
 // as FuncAttrs also contains "align".
 
 FunctionHeader
-	: OptPreemptionSpecifier OptVisibility OptDLLStorageClass OptCallingConv ReturnAttrs Type GlobalIdent "(" Params ")" OptUnnamedAddr FuncAttrs OptSection OptComdat OptGC OptPrefix OptPrologue OptPersonality
-	<< &ir.FunctionHeader{Preemption: $0.(ir.Preemption), Visibility: $1.(ir.Visibility), DLLStorageClass: $2.(ir.DLLStorageClass), CallingConv: $3.(ir.CallingConv), ReturnAttrs: $4.([]ir.ReturnAttribute), RetType: $5.(types.Type), Name: astx.GlobalIdent($6), Params: $8.(*astx.Params).Params, Variadic: $8.(*astx.Params).Variadic, UnnamedAddr: $10.(ir.UnnamedAddr), FuncAttrs: $11.([]ir.FuncAttribute), Section: $12.(*ir.Section), Comdat: $13.(*ir.Comdat), GC: $14.(string), Prefix: astx.OptConstant($15), Prologue: astx.OptConstant($16), Personality: astx.OptConstant($17)}, nil >>
-;
+	= OptPreemptionSpecifier OptVisibility OptDLLStorageClass OptCallingConv ReturnAttrs Type GlobalIdent "(" Params ")" OptUnnamedAddr FuncAttrs OptSection OptComdat OptGC OptPrefix OptPrologue OptPersonality
+.
 
 OptGC
-	: empty
-	<< "", nil >>
-	| "gc" StringLit
-	<< $1.(string), nil >>
-;
+	= [ "gc" StringLit ]
+.
 
 OptPrefix
-	: empty
-	| "prefix" Type Constant
-	<< astx.TypeConst($1, $2), nil >>
-;
+	= [ "prefix" Type Constant ]
+.
 
 OptPrologue
-	: empty
-	| "prologue" Type Constant
-	<< astx.TypeConst($1, $2), nil >>
-;
+	= [ "prologue" Type Constant ]
+.
 
 OptPersonality
-	: empty
-	| "personality" Type Constant
-	<< astx.TypeConst($1, $2), nil >>
-;
+	= [ "personality" Type Constant ]
+.
 
 // ref: ParseFunctionBody
 //
-//   ::= '{' BasicBlock+ UseListOrderDirective* '}'
+//   ::= "{" BasicBlock+ UseListOrderDirective* "}"
 
 FunctionBody
-	: "{" BasicBlockList UseListOrders "}"
-	<< &ir.FunctionBody{Blocks: $1.([]*ir.BasicBlock), UseListOrders: $2.([]*ir.UseListOrder)}, nil >>
-;
+	= "{" BasicBlockList UseListOrders "}"
+.
 
 // ~~~ [ Attribute Group Definition ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -571,12 +530,11 @@ FunctionBody
 
 // ref: ParseUnnamedAttrGrp
 //
-//   ::= 'attributes' AttrGrpID '=' '{' AttrValPair+ '}'
+//   ::= "attributes" AttrGrpID "=" "{" AttrValPair+ "}"
 
 AttrGroupDef
-	: "attributes" AttrGroupID "=" "{" FuncAttrs "}"
-	<< &ir.AttrGroupDef{ID: astx.AttrGroupID($1), FuncAttrs: $4.([]ir.FuncAttribute)}, nil >>
-;
+	= "attributes" AttrGroupID "=" "{" FuncAttrs "}"
+.
 
 // ~~~ [ Named Metadata Definition ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -587,30 +545,25 @@ AttrGroupDef
 //   !foo = !{ !1, !2 }
 
 NamedMetadataDef
-	: MetadataName "=" "!" "{" MetadataNodes "}"
-	<< &metadata.NamedMetadataDef{Name: astx.MetadataName($0), Nodes: $4.([]metadata.MetadataNode)}, nil >>
-;
+	= MetadataName "=" "!" "{" MetadataNodes "}"
+.
 
 MetadataNodes
-	: empty
-	<< ([]metadata.MetadataNode)(nil), nil >>
-	| MetadataNodeList
-;
+	= [ MetadataNodeList ]
+.
 
 MetadataNodeList
-	: MetadataNode
-	<< []metadata.MetadataNode{$0.(metadata.MetadataNode)}, nil >>
+	= MetadataNode
 	| MetadataNodeList "," MetadataNode
-	<< append($0.([]metadata.MetadataNode), $2.(metadata.MetadataNode)), nil >>
-;
+.
 
 MetadataNode
-	: MetadataID
+	= MetadataID
 	// Parse DIExpressions inline as a special case. They are still MDNodes, so
 	// they can still appear in named metadata. Remove this logic if they become
 	// plain Metadata.
 	| DIExpression
-;
+.
 
 // ~~~ [ Metadata Definition ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -621,16 +574,13 @@ MetadataNode
 //   !42 = !{...}
 
 MetadataDef
-	: MetadataID "=" OptDistinct MDTuple
-	<< &metadata.MetadataDef{ID: astx.MetadataID($0), Distinct: $2.(bool), Node: $3.(metadata.MDNode)}, nil >>
+	= MetadataID "=" OptDistinct MDTuple
 	| MetadataID "=" OptDistinct SpecializedMDNode
-	<< &metadata.MetadataDef{ID: astx.MetadataID($0), Distinct: $2.(bool), Node: $3.(metadata.MDNode)}, nil >>
-;
+.
 
 OptDistinct
-	: empty        << false, nil >>
-	| "distinct"   << true, nil >>
-;
+	= [ "distinct" ]
+.
 
 // ~~~ [ Use-list Order Directives ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -638,85 +588,72 @@ OptDistinct
 
 // ref: ParseUseListOrder
 //
-//   ::= 'uselistorder' Type Value ',' UseListOrderIndexes
+//   ::= "uselistorder" Type Value "," UseListOrderIndexes
 //  UseListOrderIndexes
-//   ::= '{' uint32 (',' uint32)+ '}'
+//   ::= "{" uint32 ("," uint32)+ "}"
 
 UseListOrders
-	: empty
-	<< ([]*ir.UseListOrder)(nil), nil >>
-	| UseListOrderList
-;
+	= [ UseListOrderList ]
+.
 
 UseListOrderList
-	: UseListOrder
-	<< []*ir.UseListOrder{$0.(*ir.UseListOrder)}, nil >>
+	= UseListOrder
 	| UseListOrderList UseListOrder
-	<< append($0.([]*ir.UseListOrder), $1.(*ir.UseListOrder)), nil >>
-;
+.
 
 UseListOrder
-	: "uselistorder" Type Value "," "{" IndexList "}"
-	<< &ir.UseListOrder{Value: astx.TypeValue($1, $2), Indices: $5.([]int64)}, nil >>
-;
+	= "uselistorder" Type Value "," "{" IndexList "}"
+.
 
 // ref: ParseUseListOrderBB
 //
-//   ::= 'uselistorder_bb' @foo ',' %bar ',' UseListOrderIndexes
+//   ::= "uselistorder_bb" @foo "," %bar "," UseListOrderIndexes
 
 UseListOrderBB
-	: "uselistorder_bb" GlobalIdent "," LocalIdent "," "{" IndexList "}"
-	<< &ir.UseListOrderBB{Func: &ir.Function{FunctionHeader: &ir.FunctionHeader{Name: astx.GlobalIdent($1)}}, Block: &ir.BasicBlock{Name: astx.LocalIdent($3)}, Indices: $6.([]int64)}, nil >>
-;
+	= "uselistorder_bb" GlobalIdent "," LocalIdent "," "{" IndexList "}"
+.
 
 // === [ Identifiers ] =========================================================
 
 // --- [ Global Identifiers ] --------------------------------------------------
 
 GlobalIdent
-	: global_ident
-	<< astx.NewGlobalIdent($0) >>
-;
+	= global_ident
+.
 
 // --- [ Local Identifiers ] ---------------------------------------------------
 
 LocalIdent
-	: local_ident
-	<< astx.NewLocalIdent($0) >>
-;
+	= local_ident
+.
 
 // --- [ Label Identifiers ] ---------------------------------------------------
 
 LabelIdent
-	: label_ident
-	<< astx.NewLabelIdent($0) >>
-;
+	= label_ident
+.
 
 // --- [ Attribute Group Identifiers ] -----------------------------------------
 
 AttrGroupID
-	: attr_group_id
-	<< astx.NewAttrGroupID($0) >>
-;
+	= attr_group_id
+.
 
 // --- [ Comdat Identifiers ] --------------------------------------------------
 
 ComdatName
-	: comdat_name
-	<< astx.NewComdatName($0) >>
-;
+	= comdat_name
+.
 
 // --- [ Metadata Identifiers ] ------------------------------------------------
 
 MetadataName
-	: metadata_name
-	<< astx.NewMetadataName($0) >>
-;
+	= metadata_name
+.
 
 MetadataID
-	: metadata_id
-	<< astx.NewMetadataID($0) >>
-;
+	= metadata_id
+.
 
 // === [ Types ] ===============================================================
 
@@ -735,28 +672,28 @@ MetadataID
 //  TYPEKEYWORD("token",     Type::getTokenTy(Context));
 
 Type
-	: VoidType
-	// Types '(' ArgTypeListI ')' OptFuncAttrs
+	= VoidType
+	// Types "(" ArgTypeListI ")" OptFuncAttrs
 	| FuncType
 	| FirstClassType
-;
+.
 
 FirstClassType
-	: ConcreteType
+	= ConcreteType
 	| MetadataType
-;
+.
 
 ConcreteType
-	: IntType
-	// Type ::= 'float' | 'void' (etc)
+	= IntType
+	// Type ::= "float" | "void" (etc)
 	| FloatType
-	// Type ::= Type '*'
-	// Type ::= Type 'addrspace' '(' uint32 ')' '*'
+	// Type ::= Type "*"
+	// Type ::= Type "addrspace" "(" uint32 ")" "*"
 	| PointerType
-	// Type ::= '<' ... '>'
+	// Type ::= "<" ... ">"
 	| VectorType
 	| LabelType
-	// Type ::= '[' ... ']'
+	// Type ::= "[" ... "]"
 	| ArrayType
 	// Type ::= StructType
 	| StructType
@@ -765,14 +702,13 @@ ConcreteType
 	| NamedType
 	| MMXType
 	| TokenType
-;
+.
 
 // --- [ Void Types ] ----------------------------------------------------------
 
 VoidType
-	: "void"
-	<< &types.VoidType{}, nil >>
-;
+	= "void"
+.
 
 // --- [ Function Types ] ------------------------------------------------------
 
@@ -781,115 +717,102 @@ VoidType
 //  ::= Type ArgumentList OptionalAttrs
 
 FuncType
-	: Type "(" Params ")"
-	<< &types.FuncType{RetType: $0.(types.Type), Params: astx.ParamTypes($2), Variadic: $2.(*astx.Params).Variadic}, nil >>
-;
+	= Type "(" Params ")"
+.
 
 // --- [ Integer Types ] -------------------------------------------------------
 
 IntType
-	: int_type
-	<< astx.NewIntType($0) >>
-;
+	= int_type
+.
 
 // --- [ Floating-point Types ] ------------------------------------------------
 
 FloatType
-	: FloatKind
-	<< &types.FloatType{Kind: $0.(types.FloatKind)}, nil >>
-;
+	= FloatKind
+.
 
 FloatKind
-	: "half"        << types.FloatKindHalf, nil >>
-	| "float"       << types.FloatKindFloat, nil >>
-	| "double"      << types.FloatKindDouble, nil >>
-	| "x86_fp80"    << types.FloatKindX86FP80, nil >>
-	| "fp128"       << types.FloatKindFP128, nil >>
-	| "ppc_fp128"   << types.FloatKindPPCFP128, nil >>
-;
+	= "half"
+	| "float"
+	| "double"
+	| "x86_fp80"
+	| "fp128"
+	| "ppc_fp128"
+.
 
 // --- [ MMX Types ] -----------------------------------------------------------
 
 MMXType
-	: "x86_mmx"
-	<< &types.MMXType{}, nil >>
-;
+	= "x86_mmx"
+.
 
 // --- [ Pointer Types ] -------------------------------------------------------
 
 PointerType
-	: Type OptAddrSpace "*"
-	<< &types.PointerType{ElemType: $0.(types.Type), AddrSpace: $1.(types.AddrSpace)}, nil >>
-;
+	= Type OptAddrSpace "*"
+.
 
 // ref: ParseOptionalAddrSpace
 //
 //   := empty
-//   := 'addrspace' '(' uint32 ')'
+//   := "addrspace" "(" uint32 ")"
 
 OptAddrSpace
-	: empty
-	<< types.AddrSpace(0), nil >>
-	| AddrSpace
-;
+	= [ AddrSpace ]
+.
 
 AddrSpace
-	: "addrspace" "(" int_lit ")"
-	<< types.AddrSpace(astx.Int($2)), nil >>
-;
+	= "addrspace" "(" int_lit ")"
+.
 
 // --- [ Vector Types ] --------------------------------------------------------
 
 // ref: ParseArrayVectorType
 //
-//     ::= '<' APSINTVAL 'x' Types '>'
+//     ::= "<" APSINTVAL "x" Types ">"
 
 VectorType
-	: "<" int_lit "x" Type ">"
-	<< &types.VectorType{Len: astx.Int($1), ElemType: $3.(types.Type)}, nil >>
-;
+	= "<" int_lit "x" Type ">"
+.
 
 // --- [ Label Types ] ---------------------------------------------------------
 
 LabelType
-	: "label"
-	<< &types.LabelType{}, nil >>
-;
+	= "label"
+.
 
 // --- [ Token Types ] ---------------------------------------------------------
 
 TokenType
-	: "token"
-	<< &types.TokenType{}, nil >>
-;
+	= "token"
+.
 
 // --- [ Metadata Types ] ------------------------------------------------------
 
 MetadataType
-	: "metadata"
-	<< &types.MetadataType{}, nil >>
-;
+	= "metadata"
+.
 
 // --- [ Array Types ] ---------------------------------------------------------
 
 // ref: ParseArrayVectorType
 //
-//     ::= '[' APSINTVAL 'x' Types ']'
+//     ::= "[" APSINTVAL "x" Types "]"
 
 ArrayType
-	: "[" int_lit "x" Type "]"
-	<< &types.ArrayType{Len: astx.Int($1), ElemType: $3.(types.Type)}, nil >>
-;
+	= "[" int_lit "x" Type "]"
+.
 
 // --- [ Structure Types ] -----------------------------------------------------
 
 // ref: ParseStructBody
 //
 //   StructType
-//     ::= '{' '}'
-//     ::= '{' Type (',' Type)* '}'
-//     ::= '<' '{' '}' '>'
-//     ::= '<' '{' Type (',' Type)* '}' '>'
+//     ::= "{" "}"
+//     ::= "{" Type ("," Type)* "}"
+//     ::= "<" "{" "}" ">"
+//     ::= "<" "{" Type ("," Type)* "}" ">"
 
 // TODO: Simplify when parser generator is not limited by 1 token lookahead.
 //
@@ -899,46 +822,38 @@ ArrayType
 //    ;
 
 StructType
-	: "{" "}"
-	<< &types.StructType{}, nil >>
+	= "{" "}"
 	| "{" TypeList "}"
-	<< &types.StructType{Fields: $1.([]types.Type)}, nil >>
 	| "<" "{" "}" ">"
-	<< &types.StructType{Packed: true}, nil >>
 	| "<" "{" TypeList "}" ">"
-	<< &types.StructType{Packed: true, Fields: $2.([]types.Type)}, nil >>
-;
+.
 
 TypeList
-	: Type
-	<< []types.Type{$0.(types.Type)}, nil >>
+	= Type
 	| TypeList "," Type
-	<< append($0.([]types.Type), $2.(types.Type)), nil >>
-;
+.
 
 OpaqueType
-	: "opaque"
-	<< &types.StructType{Opaque: true}, nil >>
-;
+	= "opaque"
+.
 
 // --- [ Named Types ] ---------------------------------------------------------
 
 NamedType
-	: LocalIdent
-	<< &ast.NamedType{Name: astx.LocalIdent($0)}, nil >>
-;
+	= LocalIdent
+.
 
 // === [ Values ] ==============================================================
 
 // ref: ParseValue
 
 Value
-	: Constant
+	= Constant
 	// %42
 	// %foo
 	| LocalIdent
 	| InlineAsm
-;
+.
 
 // --- [ Inline Assembler Expressions ] ----------------------------------------
 
@@ -946,28 +861,24 @@ Value
 
 // ref: ParseValID
 //
-//  ::= 'asm' SideEffect? AlignStack? IntelDialect? STRINGCONSTANT ','
+//  ::= "asm" SideEffect? AlignStack? IntelDialect? STRINGCONSTANT ","
 //             STRINGCONSTANT
 
 InlineAsm
-	: "asm" OptSideEffect OptAlignStack OptIntelDialect StringLit "," StringLit
-	<< &ir.InlineAsm{SideEffect: $1.(bool), AlignStack: $2.(bool), IntelDialect: $3.(bool), Asm: $4.(string), Constraint: $6.(string)}, nil >>
-;
+	= "asm" OptSideEffect OptAlignStack OptIntelDialect StringLit "," StringLit
+.
 
 OptSideEffect
-	: empty          << false, nil >>
-	| "sideeffect"   << true, nil >>
-;
+	= [ "sideeffect" ]
+.
 
 OptAlignStack
-	: empty          << false, nil >>
-	| "alignstack"   << true, nil >>
-;
+	= [ "alignstack" ]
+.
 
 OptIntelDialect
-	: empty            << false, nil >>
-	| "inteldialect"   << true, nil >>
-;
+	= [ "inteldialect" ]
+.
 
 // === [ Constants ] ===========================================================
 
@@ -976,7 +887,7 @@ OptIntelDialect
 // ref: ParseValID
 
 Constant
-	: BoolConst
+	= BoolConst
 	| IntConst
 	| FloatConst
 	| NullConst
@@ -992,7 +903,7 @@ Constant
 	| UndefConst
 	| BlockAddressConst
 	| ConstantExpr
-;
+.
 
 // --- [ Boolean Constants ] ---------------------------------------------------
 
@@ -1001,14 +912,13 @@ Constant
 // ref: ParseValID
 
 BoolConst
-	: BoolLit
-	<< &constant.Bool{X: $0.(bool)}, nil >>
-;
+	= BoolLit
+.
 
 BoolLit
-	: "true"    << true, nil >>
-	| "false"   << false, nil >>
-;
+	= "true"
+	| "false"
+.
 
 // --- [ Integer Constants ] ---------------------------------------------------
 
@@ -1017,14 +927,12 @@ BoolLit
 // ref: ParseValID
 
 IntConst
-	: int_lit
-	<< astx.NewIntConst($0) >>
-;
+	= int_lit
+.
 
 IntLit
-	: int_lit
-	<< astx.Int($0), nil >>
-;
+	= int_lit
+.
 
 // --- [ Floating-point Constants ] --------------------------------------------
 
@@ -1033,9 +941,8 @@ IntLit
 // ref: ParseValID
 
 FloatConst
-	: float_lit
-	<< astx.NewFloatConst($0) >>
-;
+	= float_lit
+.
 
 // --- [ Null Pointer Constants ] ----------------------------------------------
 
@@ -1044,9 +951,8 @@ FloatConst
 // ref: ParseValID
 
 NullConst
-	: "null"
-	<< &constant.Null{}, nil >>
-;
+	= "null"
+.
 
 // --- [ Token Constants ] -----------------------------------------------------
 
@@ -1055,9 +961,8 @@ NullConst
 // ref: ParseValID
 
 NoneConst
-	: "none"
-	<< &constant.None{}, nil >>
-;
+	= "none"
+.
 
 // --- [ Structure Constants ] -------------------------------------------------
 
@@ -1065,8 +970,8 @@ NoneConst
 
 // ref: ParseValID
 //
-//  ::= '{' ConstVector '}'
-//  ::= '<' '{' ConstVector '}' '>' --> Packed Struct.
+//  ::= "{" ConstVector "}"
+//  ::= "<" "{" ConstVector "}" ">" --> Packed Struct.
 
 // TODO: Simplify when parser generator is not limited by 1 token lookahead.
 //
@@ -1076,15 +981,11 @@ NoneConst
 //    ;
 
 StructConst
-	: "{" "}"
-	<< &constant.Struct{}, nil >>
+	= "{" "}"
 	| "{" TypeConstList "}"
-	<< &constant.Struct{Fields: $1.([]ir.Constant)}, nil >>
 	| "<" "{" "}" ">"
-	<< &constant.Struct{Packed: true}, nil >>
 	| "<" "{" TypeConstList "}" ">"
-	<< &constant.Struct{Packed: true, Fields: $2.([]ir.Constant)}, nil >>
-;
+.
 
 // --- [ Array Constants ] -----------------------------------------------------
 
@@ -1095,19 +996,16 @@ StructConst
 //  c "foo"
 
 ArrayConst
-	: "[" TypeConsts "]"
-	<< &constant.Array{Elems: $1.([]ir.Constant)}, nil >>
-;
+	= "[" TypeConsts "]"
+.
 
 CharArrayConst
-	: "c" StringLit
-	<< &constant.CharArray{Value: $1.(string)}, nil >>
-;
+	= "c" StringLit
+.
 
 StringLit
-	: string_lit
-	<< astx.UnquoteString($0), nil >>
-;
+	= string_lit
+.
 
 // --- [ Vector Constants ] ----------------------------------------------------
 
@@ -1115,12 +1013,11 @@ StringLit
 
 // ref: ParseValID
 //
-//  ::= '<' ConstVector '>'         --> Vector.
+//  ::= "<" ConstVector ">"         --> Vector.
 
 VectorConst
-	: "<" TypeConsts ">"
-	<< &constant.Vector{Elems: $1.([]ir.Constant)}, nil >>
-;
+	= "<" TypeConsts ">"
+.
 
 // --- [ Zero Initialization Constants ] ---------------------------------------
 
@@ -1129,9 +1026,8 @@ VectorConst
 // ref: ParseValID
 
 ZeroInitializerConst
-	: "zeroinitializer"
-	<< &constant.ZeroInitializer{}, nil >>
-;
+	= "zeroinitializer"
+.
 
 // --- [ Undefined Values ] ----------------------------------------------------
 
@@ -1140,9 +1036,8 @@ ZeroInitializerConst
 // ref: ParseValID
 
 UndefConst
-	: "undef"
-	<< &constant.Undef{}, nil >>
-;
+	= "undef"
+.
 
 // --- [ Addresses of Basic Blocks ] -------------------------------------------
 
@@ -1150,12 +1045,11 @@ UndefConst
 
 // ref: ParseValID
 //
-//  ::= 'blockaddress' '(' @foo ',' %bar ')'
+//  ::= "blockaddress" "(" @foo "," %bar ")"
 
 BlockAddressConst
-	: "blockaddress" "(" GlobalIdent "," LocalIdent ")"
-	<< &constant.BlockAddress{Func: &ir.Function{FunctionHeader: &ir.FunctionHeader{Name: $2.(*ast.GlobalIdent).Name}}, Block: &ir.BasicBlock{Name: astx.LocalIdent($4)}}, nil >>
-;
+	= "blockaddress" "(" GlobalIdent "," LocalIdent ")"
+.
 
 // === [ Constant expressions ] ================================================
 
@@ -1165,7 +1059,7 @@ BlockAddressConst
 
 ConstantExpr
 	// Binary expressions
-	: AddExpr
+	= AddExpr
 	| FAddExpr
 	| SubExpr
 	| FSubExpr
@@ -1211,7 +1105,7 @@ ConstantExpr
 	| ICmpExpr
 	| FCmpExpr
 	| SelectExpr
-;
+.
 
 // --- [ Binary expressions ] --------------------------------------------------
 
@@ -1222,108 +1116,96 @@ ConstantExpr
 // ref: ParseValID
 
 AddExpr
-	: "add" OverflowFlags "(" Type Constant "," Type Constant ")"
-	<< &constant.ExprAdd{OverflowFlags: $1.([]ir.OverflowFlag), X: astx.TypeConst($3, $4), Y: astx.TypeConst($6, $7)}, nil >>
-;
+	= "add" OverflowFlags "(" Type Constant "," Type Constant ")"
+.
 
 // ~~~ [ fadd ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 FAddExpr
-	: "fadd" "(" Type Constant "," Type Constant ")"
-	<< &constant.ExprFAdd{X: astx.TypeConst($2, $3), Y: astx.TypeConst($5, $6)}, nil >>
-;
+	= "fadd" "(" Type Constant "," Type Constant ")"
+.
 
 // ~~~ [ sub ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 SubExpr
-	: "sub" OverflowFlags "(" Type Constant "," Type Constant ")"
-	<< &constant.ExprSub{OverflowFlags: $1.([]ir.OverflowFlag), X: astx.TypeConst($3, $4), Y: astx.TypeConst($6, $7)}, nil >>
-;
+	= "sub" OverflowFlags "(" Type Constant "," Type Constant ")"
+.
 
 // ~~~ [ fsub ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 FSubExpr
-	: "fsub" "(" Type Constant "," Type Constant ")"
-	<< &constant.ExprFSub{X: astx.TypeConst($2, $3), Y: astx.TypeConst($5, $6)}, nil >>
-;
+	= "fsub" "(" Type Constant "," Type Constant ")"
+.
 
 // ~~~ [ mul ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 MulExpr
-	: "mul" OverflowFlags "(" Type Constant "," Type Constant ")"
-	<< &constant.ExprMul{OverflowFlags: $1.([]ir.OverflowFlag), X: astx.TypeConst($3, $4), Y: astx.TypeConst($6, $7)}, nil >>
-;
+	= "mul" OverflowFlags "(" Type Constant "," Type Constant ")"
+.
 
 // ~~~ [ fmul ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 FMulExpr
-	: "fmul" "(" Type Constant "," Type Constant ")"
-	<< &constant.ExprFMul{X: astx.TypeConst($2, $3), Y: astx.TypeConst($5, $6)}, nil >>
-;
+	= "fmul" "(" Type Constant "," Type Constant ")"
+.
 
 // ~~~ [ udiv ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 UDivExpr
-	: "udiv" OptExact "(" Type Constant "," Type Constant ")"
-	<< &constant.ExprUDiv{Exact: $1.(bool), X: astx.TypeConst($3, $4), Y: astx.TypeConst($6, $7)}, nil >>
-;
+	= "udiv" OptExact "(" Type Constant "," Type Constant ")"
+.
 
 // ~~~ [ sdiv ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 SDivExpr
-	: "sdiv" OptExact "(" Type Constant "," Type Constant ")"
-	<< &constant.ExprSDiv{Exact: $1.(bool), X: astx.TypeConst($3, $4), Y: astx.TypeConst($6, $7)}, nil >>
-;
+	= "sdiv" OptExact "(" Type Constant "," Type Constant ")"
+.
 
 // ~~~ [ fdiv ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 FDivExpr
-	: "fdiv" "(" Type Constant "," Type Constant ")"
-	<< &constant.ExprFDiv{X: astx.TypeConst($2, $3), Y: astx.TypeConst($5, $6)}, nil >>
-;
+	= "fdiv" "(" Type Constant "," Type Constant ")"
+.
 
 // ~~~ [ urem ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 URemExpr
-	: "urem" "(" Type Constant "," Type Constant ")"
-	<< &constant.ExprURem{X: astx.TypeConst($2, $3), Y: astx.TypeConst($5, $6)}, nil >>
-;
+	= "urem" "(" Type Constant "," Type Constant ")"
+.
 
 // ~~~ [ srem ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 SRemExpr
-	: "srem" "(" Type Constant "," Type Constant ")"
-	<< &constant.ExprSRem{X: astx.TypeConst($2, $3), Y: astx.TypeConst($5, $6)}, nil >>
-;
+	= "srem" "(" Type Constant "," Type Constant ")"
+.
 
 // ~~~ [ frem ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 FRemExpr
-	: "frem" "(" Type Constant "," Type Constant ")"
-	<< &constant.ExprFRem{X: astx.TypeConst($2, $3), Y: astx.TypeConst($5, $6)}, nil >>
-;
+	= "frem" "(" Type Constant "," Type Constant ")"
+.
 
 // --- [ Bitwise expressions ] -------------------------------------------------
 
@@ -1334,54 +1216,48 @@ FRemExpr
 // ref: ParseValID
 
 ShlExpr
-	: "shl" OverflowFlags "(" Type Constant "," Type Constant ")"
-	<< &constant.ExprShl{OverflowFlags: $1.([]ir.OverflowFlag), X: astx.TypeConst($3, $4), Y: astx.TypeConst($6, $7)}, nil >>
-;
+	= "shl" OverflowFlags "(" Type Constant "," Type Constant ")"
+.
 
 // ~~~ [ lshr ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 LShrExpr
-	: "lshr" OptExact "(" Type Constant "," Type Constant ")"
-	<< &constant.ExprLShr{Exact: $1.(bool), X: astx.TypeConst($3, $4), Y: astx.TypeConst($6, $7)}, nil >>
-;
+	= "lshr" OptExact "(" Type Constant "," Type Constant ")"
+.
 
 // ~~~ [ ashr ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 AShrExpr
-	: "ashr" OptExact "(" Type Constant "," Type Constant ")"
-	<< &constant.ExprAShr{Exact: $1.(bool), X: astx.TypeConst($3, $4), Y: astx.TypeConst($6, $7)}, nil >>
-;
+	= "ashr" OptExact "(" Type Constant "," Type Constant ")"
+.
 
 // ~~~ [ and ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 AndExpr
-	: "and" "(" Type Constant "," Type Constant ")"
-	<< &constant.ExprAnd{X: astx.TypeConst($2, $3), Y: astx.TypeConst($5, $6)}, nil >>
-;
+	= "and" "(" Type Constant "," Type Constant ")"
+.
 
 // ~~~ [ or ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 OrExpr
-	: "or" "(" Type Constant "," Type Constant ")"
-	<< &constant.ExprOr{X: astx.TypeConst($2, $3), Y: astx.TypeConst($5, $6)}, nil >>
-;
+	= "or" "(" Type Constant "," Type Constant ")"
+.
 
 // ~~~ [ xor ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 XorExpr
-	: "xor" "(" Type Constant "," Type Constant ")"
-	<< &constant.ExprXor{X: astx.TypeConst($2, $3), Y: astx.TypeConst($5, $6)}, nil >>
-;
+	= "xor" "(" Type Constant "," Type Constant ")"
+.
 
 // --- [ Vector expressions ] --------------------------------------------------
 
@@ -1392,27 +1268,24 @@ XorExpr
 // ref: ParseValID
 
 ExtractElementExpr
-	: "extractelement" "(" Type Constant "," Type Constant ")"
-	<< &constant.ExprExtractElement{X: astx.TypeConst($2, $3), Index: astx.TypeConst($5, $6)}, nil >>
-;
+	= "extractelement" "(" Type Constant "," Type Constant ")"
+.
 
 // ~~~ [ insertelement ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 InsertElementExpr
-	: "insertelement" "(" Type Constant "," Type Constant "," Type Constant ")"
-	<< &constant.ExprInsertElement{X: astx.TypeConst($2, $3), Elem: astx.TypeConst($5, $6), Index: astx.TypeConst($8, $9)}, nil >>
-;
+	= "insertelement" "(" Type Constant "," Type Constant "," Type Constant ")"
+.
 
 // ~~~ [ shufflevector ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 ShuffleVectorExpr
-	: "shufflevector" "(" Type Constant "," Type Constant "," Type Constant ")"
-	<< &constant.ExprShuffleVector{X: astx.TypeConst($2, $3), Y: astx.TypeConst($5, $6), Mask: astx.TypeConst($8, $9)}, nil >>
-;
+	= "shufflevector" "(" Type Constant "," Type Constant "," Type Constant ")"
+.
 
 // --- [ Aggregate expressions ] -----------------------------------------------
 
@@ -1423,18 +1296,16 @@ ShuffleVectorExpr
 // ref: ParseValID
 
 ExtractValueExpr
-	: "extractvalue" "(" Type Constant Indices ")"
-	<< &constant.ExprExtractValue{X: astx.TypeConst($2, $3), Indices: $4.([]int64)}, nil >>
-;
+	= "extractvalue" "(" Type Constant Indices ")"
+.
 
 // ~~~ [ insertvalue ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 InsertValueExpr
-	: "insertvalue" "(" Type Constant "," Type Constant Indices ")"
-	<< &constant.ExprInsertValue{X: astx.TypeConst($2, $3), Elem: astx.TypeConst($5, $6), Indices: $7.([]int64)}, nil >>
-;
+	= "insertvalue" "(" Type Constant "," Type Constant Indices ")"
+.
 
 // --- [ Memory expressions ] --------------------------------------------------
 
@@ -1445,37 +1316,30 @@ InsertValueExpr
 // ref: ParseValID
 
 GetElementPtrExpr
-	: "getelementptr" OptInBounds "(" Type "," Type Constant "," GEPConstIndices ")"
-	<< &constant.ExprGetElementPtr{InBounds: $1.(bool), ElemType: $3.(types.Type), Src: astx.TypeConst($5, $6), Indices: $8.([]*constant.Index)}, nil >>
-;
+	= "getelementptr" OptInBounds "(" Type "," Type Constant "," GEPConstIndices ")"
+.
 
 // ref: ParseGlobalValueVector
 //
 //   ::= empty
-//   ::= [inrange] TypeAndValue (',' [inrange] TypeAndValue)*
+//   ::= [inrange] TypeAndValue ("," [inrange] TypeAndValue)*
 
 GEPConstIndices
-	: empty
-	<< ([]*constant.Index)(nil), nil >>
-	| GEPConstIndexList
-;
+	= [ GEPConstIndexList ]
+.
 
 GEPConstIndexList
-	: GEPConstIndex
-	<< []*constant.Index{$0.(*constant.Index)}, nil >>
+	= GEPConstIndex
 	| GEPConstIndexList "," GEPConstIndex
-	<< append($0.([]*constant.Index), $2.(*constant.Index)), nil >>
-;
+.
 
 GEPConstIndex
-	: OptInrange Type Constant
-	<< &constant.Index{InRange: $0.(bool), Index: astx.TypeConst($1, $2)}, nil >>
-;
+	= OptInrange Type Constant
+.
 
 OptInrange
-	: empty       << false, nil >>
-	| "inrange"   << true, nil >>
-;
+	= [ "inrange" ]
+.
 
 // --- [ Conversion expressions ] ----------------------------------------------
 
@@ -1486,117 +1350,104 @@ OptInrange
 // ref: ParseValID
 
 TruncExpr
-	: "trunc" "(" Type Constant "to" Type ")"
-	<< &constant.ExprTrunc{From: astx.TypeConst($2, $3), To: $5.(types.Type)}, nil >>
-;
+	= "trunc" "(" Type Constant "to" Type ")"
+.
 
 // ~~~ [ zext ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 ZExtExpr
-	: "zext" "(" Type Constant "to" Type ")"
-	<< &constant.ExprZExt{From: astx.TypeConst($2, $3), To: $5.(types.Type)}, nil >>
-;
+	= "zext" "(" Type Constant "to" Type ")"
+.
 
 // ~~~ [ sext ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 SExtExpr
-	: "sext" "(" Type Constant "to" Type ")"
-	<< &constant.ExprSExt{From: astx.TypeConst($2, $3), To: $5.(types.Type)}, nil >>
-;
+	= "sext" "(" Type Constant "to" Type ")"
+.
 
 // ~~~ [ fptrunc ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 FPTruncExpr
-	: "fptrunc" "(" Type Constant "to" Type ")"
-	<< &constant.ExprFPTrunc{From: astx.TypeConst($2, $3), To: $5.(types.Type)}, nil >>
-;
+	= "fptrunc" "(" Type Constant "to" Type ")"
+.
 
 // ~~~ [ fpext ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 FPExtExpr
-	: "fpext" "(" Type Constant "to" Type ")"
-	<< &constant.ExprFPExt{From: astx.TypeConst($2, $3), To: $5.(types.Type)}, nil >>
-;
+	= "fpext" "(" Type Constant "to" Type ")"
+.
 
 // ~~~ [ fptoui ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 FPToUIExpr
-	: "fptoui" "(" Type Constant "to" Type ")"
-	<< &constant.ExprFPToUI{From: astx.TypeConst($2, $3), To: $5.(types.Type)}, nil >>
-;
+	= "fptoui" "(" Type Constant "to" Type ")"
+.
 
 // ~~~ [ fptosi ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 FPToSIExpr
-	: "fptosi" "(" Type Constant "to" Type ")"
-	<< &constant.ExprFPToSI{From: astx.TypeConst($2, $3), To: $5.(types.Type)}, nil >>
-;
+	= "fptosi" "(" Type Constant "to" Type ")"
+.
 
 // ~~~ [ uitofp ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 UIToFPExpr
-	: "uitofp" "(" Type Constant "to" Type ")"
-	<< &constant.ExprUIToFP{From: astx.TypeConst($2, $3), To: $5.(types.Type)}, nil >>
-;
+	= "uitofp" "(" Type Constant "to" Type ")"
+.
 
 // ~~~ [ sitofp ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 SIToFPExpr
-	: "sitofp" "(" Type Constant "to" Type ")"
-	<< &constant.ExprSIToFP{From: astx.TypeConst($2, $3), To: $5.(types.Type)}, nil >>
-;
+	= "sitofp" "(" Type Constant "to" Type ")"
+.
 
 // ~~~ [ ptrtoint ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 PtrToIntExpr
-	: "ptrtoint" "(" Type Constant "to" Type ")"
-	<< &constant.ExprPtrToInt{From: astx.TypeConst($2, $3), To: $5.(types.Type)}, nil >>
-;
+	= "ptrtoint" "(" Type Constant "to" Type ")"
+.
 
 // ~~~ [ inttoptr ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 IntToPtrExpr
-	: "inttoptr" "(" Type Constant "to" Type ")"
-	<< &constant.ExprIntToPtr{From: astx.TypeConst($2, $3), To: $5.(types.Type)}, nil >>
-;
+	= "inttoptr" "(" Type Constant "to" Type ")"
+.
 
 // ~~~ [ bitcast ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 BitCastExpr
-	: "bitcast" "(" Type Constant "to" Type ")"
-	<< &constant.ExprBitCast{From: astx.TypeConst($2, $3), To: $5.(types.Type)}, nil >>
-;
+	= "bitcast" "(" Type Constant "to" Type ")"
+.
 
 // ~~~ [ addrspacecast ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 AddrSpaceCastExpr
-	: "addrspacecast" "(" Type Constant "to" Type ")"
-	<< &constant.ExprAddrSpaceCast{From: astx.TypeConst($2, $3), To: $5.(types.Type)}, nil >>
-;
+	= "addrspacecast" "(" Type Constant "to" Type ")"
+.
 
 // --- [ Other expressions ] ---------------------------------------------------
 
@@ -1607,27 +1458,24 @@ AddrSpaceCastExpr
 // ref: ParseValID
 
 ICmpExpr
-	: "icmp" IPred "(" Type Constant "," Type Constant ")"
-	<< &constant.ExprICmp{Pred: $1.(ir.IPred), X: astx.TypeConst($3, $4), Y: astx.TypeConst($6, $7)}, nil >>
-;
+	= "icmp" IPred "(" Type Constant "," Type Constant ")"
+.
 
 // ~~~ [ fcmp ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 FCmpExpr
-	: "fcmp" FPred "(" Type Constant "," Type Constant ")"
-	<< &constant.ExprFCmp{Pred: $1.(ir.FPred), X: astx.TypeConst($3, $4), Y: astx.TypeConst($6, $7)}, nil >>
-;
+	= "fcmp" FPred "(" Type Constant "," Type Constant ")"
+.
 
 // ~~~ [ select ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ref: ParseValID
 
 SelectExpr
-	: "select" "(" Type Constant "," Type Constant "," Type Constant ")"
-	<< &constant.ExprSelect{Cond: astx.TypeConst($2, $3), X: astx.TypeConst($5, $6), Y: astx.TypeConst($8, $9)}, nil >>
-;
+	= "select" "(" Type Constant "," Type Constant "," Type Constant ")"
+.
 
 // === [ Basic Blocks ] ========================================================
 
@@ -1636,21 +1484,17 @@ SelectExpr
 //   ::= LabelStr? Instruction*
 
 BasicBlockList
-	: BasicBlock
-	<< []*ir.BasicBlock{$0.(*ir.BasicBlock)}, nil >>
+	= BasicBlock
 	| BasicBlockList BasicBlock
-	<< append($0.([]*ir.BasicBlock), $1.(*ir.BasicBlock)), nil >>
-;
+.
 
 BasicBlock
-	: OptLabelIdent Instructions Terminator
-	<< &ir.BasicBlock{Name: astx.LabelIdent($0), Insts: $1.([]ir.Instruction), Term: $2.(ir.Terminator)}, nil >>
-;
+	= OptLabelIdent Instructions Terminator
+.
 
 OptLabelIdent
-	: empty
-	| LabelIdent
-;
+	= [ LabelIdent ]
+.
 
 // === [ Instructions ] ========================================================
 
@@ -1659,34 +1503,28 @@ OptLabelIdent
 // ref: ParseInstruction
 
 Instructions
-	: empty
-	<< ([]ir.Instruction)(nil), nil >>
-	| InstructionList
-;
+	= [ InstructionList ]
+.
 
 InstructionList
-	: Instruction
-	<< []ir.Instruction{$0.(ir.Instruction)}, nil >>
+	= Instruction
 	| InstructionList Instruction
-	<< append($0.([]ir.Instruction), $1.(ir.Instruction)), nil >>
-;
+.
 
 Instruction
 	// Instructions not producing values.
-	: StoreInst
+	= StoreInst
 	| FenceInst
 	| CmpXchgInst
 	| AtomicRMWInst
 	// Instructions producing values.
 	| LocalIdent "=" ValueInstruction
-	<< &ir.LocalDef{Name: astx.LocalIdent($0), Inst: $2.(ir.ValueInstruction)}, nil >>
 	| ValueInstruction
-	<< &ir.LocalDef{Inst: $0.(ir.ValueInstruction)}, nil >>
-;
+.
 
 ValueInstruction
 	// Binary instructions
-	: AddInst
+	= AddInst
 	| FAddInst
 	| SubInst
 	| FSubInst
@@ -1740,7 +1578,7 @@ ValueInstruction
 	| LandingPadInst
 	| CatchPadInst
 	| CleanupPadInst
-;
+.
 
 // --- [ Binary instructions ] -------------------------------------------------
 
@@ -1750,12 +1588,11 @@ ValueInstruction
 
 // ref: ParseArithmetic
 //
-//  ::= ArithmeticOps TypeAndValue ',' Value
+//  ::= ArithmeticOps TypeAndValue "," Value
 
 AddInst
-	: "add" OverflowFlags Type Value "," Value OptCommaSepMetadataAttachmentList
-	<< &ir.InstAdd{OverflowFlags: $1.([]ir.OverflowFlag), X: astx.TypeValue($2, $3), Y: astx.TypeValue($2, $5), Metadata: $6.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "add" OverflowFlags Type Value "," Value OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ fadd ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1763,12 +1600,11 @@ AddInst
 
 // ref: ParseArithmetic
 //
-//  ::= ArithmeticOps TypeAndValue ',' Value
+//  ::= ArithmeticOps TypeAndValue "," Value
 
 FAddInst
-	: "fadd" FastMathFlags Type Value "," Value OptCommaSepMetadataAttachmentList
-	<< &ir.InstFAdd{FastMathFlags: $1.([]ir.FastMathFlag), X: astx.TypeValue($2, $3), Y: astx.TypeValue($2, $5), Metadata: $6.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "fadd" FastMathFlags Type Value "," Value OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ sub ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1776,12 +1612,11 @@ FAddInst
 
 // ref: ParseArithmetic
 //
-//  ::= ArithmeticOps TypeAndValue ',' Value
+//  ::= ArithmeticOps TypeAndValue "," Value
 
 SubInst
-	: "sub" OverflowFlags Type Value "," Value OptCommaSepMetadataAttachmentList
-	<< &ir.InstSub{OverflowFlags: $1.([]ir.OverflowFlag), X: astx.TypeValue($2, $3), Y: astx.TypeValue($2, $5), Metadata: $6.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "sub" OverflowFlags Type Value "," Value OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ fsub ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1789,12 +1624,11 @@ SubInst
 
 // ref: ParseArithmetic
 //
-//  ::= ArithmeticOps TypeAndValue ',' Value
+//  ::= ArithmeticOps TypeAndValue "," Value
 
 FSubInst
-	: "fsub" FastMathFlags Type Value "," Value OptCommaSepMetadataAttachmentList
-	<< &ir.InstFSub{FastMathFlags: $1.([]ir.FastMathFlag), X: astx.TypeValue($2, $3), Y: astx.TypeValue($2, $5), Metadata: $6.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "fsub" FastMathFlags Type Value "," Value OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ mul ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1802,12 +1636,11 @@ FSubInst
 
 // ref: ParseArithmetic
 //
-//  ::= ArithmeticOps TypeAndValue ',' Value
+//  ::= ArithmeticOps TypeAndValue "," Value
 
 MulInst
-	: "mul" OverflowFlags Type Value "," Value OptCommaSepMetadataAttachmentList
-	<< &ir.InstMul{OverflowFlags: $1.([]ir.OverflowFlag), X: astx.TypeValue($2, $3), Y: astx.TypeValue($2, $5), Metadata: $6.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "mul" OverflowFlags Type Value "," Value OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ fmul ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1815,12 +1648,11 @@ MulInst
 
 // ref: ParseArithmetic
 //
-//  ::= ArithmeticOps TypeAndValue ',' Value
+//  ::= ArithmeticOps TypeAndValue "," Value
 
 FMulInst
-	: "fmul" FastMathFlags Type Value "," Value OptCommaSepMetadataAttachmentList
-	<< &ir.InstFMul{FastMathFlags: $1.([]ir.FastMathFlag), X: astx.TypeValue($2, $3), Y: astx.TypeValue($2, $5), Metadata: $6.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "fmul" FastMathFlags Type Value "," Value OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ udiv ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1828,12 +1660,11 @@ FMulInst
 
 // ref: ParseArithmetic
 //
-//  ::= ArithmeticOps TypeAndValue ',' Value
+//  ::= ArithmeticOps TypeAndValue "," Value
 
 UDivInst
-	: "udiv" OptExact Type Value "," Value OptCommaSepMetadataAttachmentList
-	<< &ir.InstUDiv{Exact: $1.(bool), X: astx.TypeValue($2, $3), Y: astx.TypeValue($2, $5), Metadata: $6.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "udiv" OptExact Type Value "," Value OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ sdiv ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1841,12 +1672,11 @@ UDivInst
 
 // ref: ParseArithmetic
 //
-//  ::= ArithmeticOps TypeAndValue ',' Value
+//  ::= ArithmeticOps TypeAndValue "," Value
 
 SDivInst
-	: "sdiv" OptExact Type Value "," Value OptCommaSepMetadataAttachmentList
-	<< &ir.InstSDiv{Exact: $1.(bool), X: astx.TypeValue($2, $3), Y: astx.TypeValue($2, $5), Metadata: $6.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "sdiv" OptExact Type Value "," Value OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ fdiv ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1854,12 +1684,11 @@ SDivInst
 
 // ref: ParseArithmetic
 //
-//  ::= ArithmeticOps TypeAndValue ',' Value
+//  ::= ArithmeticOps TypeAndValue "," Value
 
 FDivInst
-	: "fdiv" FastMathFlags Type Value "," Value OptCommaSepMetadataAttachmentList
-	<< &ir.InstFDiv{FastMathFlags: $1.([]ir.FastMathFlag), X: astx.TypeValue($2, $3), Y: astx.TypeValue($2, $5), Metadata: $6.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "fdiv" FastMathFlags Type Value "," Value OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ urem ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1867,12 +1696,11 @@ FDivInst
 
 // ref: ParseArithmetic
 //
-//  ::= ArithmeticOps TypeAndValue ',' Value
+//  ::= ArithmeticOps TypeAndValue "," Value
 
 URemInst
-	: "urem" Type Value "," Value OptCommaSepMetadataAttachmentList
-	<< &ir.InstURem{X: astx.TypeValue($1, $2), Y: astx.TypeValue($1, $4), Metadata: $5.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "urem" Type Value "," Value OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ srem ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1880,12 +1708,11 @@ URemInst
 
 // ref: ParseArithmetic
 //
-//  ::= ArithmeticOps TypeAndValue ',' Value
+//  ::= ArithmeticOps TypeAndValue "," Value
 
 SRemInst
-	: "srem" Type Value "," Value OptCommaSepMetadataAttachmentList
-	<< &ir.InstSRem{X: astx.TypeValue($1, $2), Y: astx.TypeValue($1, $4), Metadata: $5.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "srem" Type Value "," Value OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ frem ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1893,12 +1720,11 @@ SRemInst
 
 // ref: ParseArithmetic
 //
-//  ::= ArithmeticOps TypeAndValue ',' Value
+//  ::= ArithmeticOps TypeAndValue "," Value
 
 FRemInst
-	: "frem" FastMathFlags Type Value "," Value OptCommaSepMetadataAttachmentList
-	<< &ir.InstFRem{FastMathFlags: $1.([]ir.FastMathFlag), X: astx.TypeValue($2, $3), Y: astx.TypeValue($2, $5), Metadata: $6.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "frem" FastMathFlags Type Value "," Value OptCommaSepMetadataAttachmentList
+.
 
 // --- [ Bitwise instructions ] ------------------------------------------------
 
@@ -1908,12 +1734,11 @@ FRemInst
 
 // ref: ParseArithmetic
 //
-//  ::= ArithmeticOps TypeAndValue ',' Value
+//  ::= ArithmeticOps TypeAndValue "," Value
 
 ShlInst
-	: "shl" OverflowFlags Type Value "," Value OptCommaSepMetadataAttachmentList
-	<< &ir.InstShl{OverflowFlags: $1.([]ir.OverflowFlag), X: astx.TypeValue($2, $3), Y: astx.TypeValue($2, $5), Metadata: $6.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "shl" OverflowFlags Type Value "," Value OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ lshr ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1921,12 +1746,11 @@ ShlInst
 
 // ref: ParseArithmetic
 //
-//  ::= ArithmeticOps TypeAndValue ',' Value
+//  ::= ArithmeticOps TypeAndValue "," Value
 
 LShrInst
-	: "lshr" OptExact Type Value "," Value OptCommaSepMetadataAttachmentList
-	<< &ir.InstLShr{Exact: $1.(bool), X: astx.TypeValue($2, $3), Y: astx.TypeValue($2, $5), Metadata: $6.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "lshr" OptExact Type Value "," Value OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ ashr ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1934,12 +1758,11 @@ LShrInst
 
 // ref: ParseArithmetic
 //
-//  ::= ArithmeticOps TypeAndValue ',' Value
+//  ::= ArithmeticOps TypeAndValue "," Value
 
 AShrInst
-	: "ashr" OptExact Type Value "," Value OptCommaSepMetadataAttachmentList
-	<< &ir.InstAShr{Exact: $1.(bool), X: astx.TypeValue($2, $3), Y: astx.TypeValue($2, $5), Metadata: $6.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "ashr" OptExact Type Value "," Value OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ and ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1947,12 +1770,11 @@ AShrInst
 
 // ref: ParseLogical
 //
-//  ::= ArithmeticOps TypeAndValue ',' Value {
+//  ::= ArithmeticOps TypeAndValue "," Value {
 
 AndInst
-	: "and" Type Value "," Value OptCommaSepMetadataAttachmentList
-	<< &ir.InstAnd{X: astx.TypeValue($1, $2), Y: astx.TypeValue($1, $4), Metadata: $5.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "and" Type Value "," Value OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ or ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1960,12 +1782,11 @@ AndInst
 
 // ref: ParseLogical
 //
-//  ::= ArithmeticOps TypeAndValue ',' Value {
+//  ::= ArithmeticOps TypeAndValue "," Value {
 
 OrInst
-	: "or" Type Value "," Value OptCommaSepMetadataAttachmentList
-	<< &ir.InstOr{X: astx.TypeValue($1, $2), Y: astx.TypeValue($1, $4), Metadata: $5.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "or" Type Value "," Value OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ xor ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1973,12 +1794,11 @@ OrInst
 
 // ref: ParseLogical
 //
-//  ::= ArithmeticOps TypeAndValue ',' Value {
+//  ::= ArithmeticOps TypeAndValue "," Value {
 
 XorInst
-	: "xor" Type Value "," Value OptCommaSepMetadataAttachmentList
-	<< &ir.InstXor{X: astx.TypeValue($1, $2), Y: astx.TypeValue($1, $4), Metadata: $5.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "xor" Type Value "," Value OptCommaSepMetadataAttachmentList
+.
 
 // --- [ Vector instructions ] -------------------------------------------------
 
@@ -1988,12 +1808,11 @@ XorInst
 
 // ref: ParseExtractElement
 //
-//   ::= 'extractelement' TypeAndValue ',' TypeAndValue
+//   ::= "extractelement" TypeAndValue "," TypeAndValue
 
 ExtractElementInst
-	: "extractelement" Type Value "," Type Value OptCommaSepMetadataAttachmentList
-	<< &ir.InstExtractElement{X: astx.TypeValue($1, $2), Index: astx.TypeValue($4, $5), Metadata: $6.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "extractelement" Type Value "," Type Value OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ insertelement ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2001,12 +1820,11 @@ ExtractElementInst
 
 // ref: ParseInsertElement
 //
-//   ::= 'insertelement' TypeAndValue ',' TypeAndValue ',' TypeAndValue
+//   ::= "insertelement" TypeAndValue "," TypeAndValue "," TypeAndValue
 
 InsertElementInst
-	: "insertelement" Type Value "," Type Value "," Type Value OptCommaSepMetadataAttachmentList
-	<< &ir.InstInsertElement{X: astx.TypeValue($1, $2), Elem: astx.TypeValue($4, $5), Index: astx.TypeValue($7, $8), Metadata: $9.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "insertelement" Type Value "," Type Value "," Type Value OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ shufflevector ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2014,12 +1832,11 @@ InsertElementInst
 
 // ref: ParseShuffleVector
 //
-//   ::= 'shufflevector' TypeAndValue ',' TypeAndValue ',' TypeAndValue
+//   ::= "shufflevector" TypeAndValue "," TypeAndValue "," TypeAndValue
 
 ShuffleVectorInst
-	: "shufflevector" Type Value "," Type Value "," Type Value OptCommaSepMetadataAttachmentList
-	<< &ir.InstShuffleVector{X: astx.TypeValue($1, $2), Y: astx.TypeValue($4, $5), Mask: astx.TypeValue($7, $8), Metadata: $9.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "shufflevector" Type Value "," Type Value "," Type Value OptCommaSepMetadataAttachmentList
+.
 
 // --- [ Aggregate instructions ] ----------------------------------------------
 
@@ -2029,12 +1846,11 @@ ShuffleVectorInst
 
 // ref: ParseExtractValue
 //
-//   ::= 'extractvalue' TypeAndValue (',' uint32)+
+//   ::= "extractvalue" TypeAndValue ("," uint32)+
 
 ExtractValueInst
-	: "extractvalue" Type Value "," IndexList OptCommaSepMetadataAttachmentList
-	<< &ir.InstExtractValue{X: astx.TypeValue($1, $2), Indices: $4.([]int64), Metadata: $5.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "extractvalue" Type Value "," IndexList OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ insertvalue ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2042,12 +1858,11 @@ ExtractValueInst
 
 // ref: ParseInsertValue
 //
-//   ::= 'insertvalue' TypeAndValue ',' TypeAndValue (',' uint32)+
+//   ::= "insertvalue" TypeAndValue "," TypeAndValue ("," uint32)+
 
 InsertValueInst
-	: "insertvalue" Type Value "," Type Value "," IndexList OptCommaSepMetadataAttachmentList
-	<< &ir.InstInsertValue{X: astx.TypeValue($1, $2), Elem: astx.TypeValue($4, $5), Indices: $7.([]int64), Metadata: $8.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "insertvalue" Type Value "," Type Value "," IndexList OptCommaSepMetadataAttachmentList
+.
 
 // --- [ Memory instructions ] -------------------------------------------------
 
@@ -2057,8 +1872,8 @@ InsertValueInst
 
 // ref: ParseAlloc
 //
-//   ::= 'alloca' 'inalloca'? 'swifterror'? Type (',' TypeAndValue)?
-//       (',' 'align' i32)? (',', 'addrspace(n))?
+//   ::= "alloca" "inalloca"? "swifterror"? Type ("," TypeAndValue)?
+//       ("," "align" i32)? (",", "addrspace(n))?
 
 // TODO: Simplify when parser generator is not limited by 1 token lookahead.
 //
@@ -2067,33 +1882,23 @@ InsertValueInst
 //    ;
 
 AllocaInst
-	: "alloca" OptInAlloca OptSwiftError Type OptCommaSepMetadataAttachmentList
-	<< &ir.InstAlloca{InAlloca: $1.(bool), SwiftError: $2.(bool), ElemType: $3.(types.Type), Metadata: $4.([]*metadata.MetadataAttachment)}, nil >>
+	= "alloca" OptInAlloca OptSwiftError Type OptCommaSepMetadataAttachmentList
 	| "alloca" OptInAlloca OptSwiftError Type "," Alignment OptCommaSepMetadataAttachmentList
-	<< &ir.InstAlloca{InAlloca: $1.(bool), SwiftError: $2.(bool), ElemType: $3.(types.Type), Alignment: $5.(*ir.Alignment), Metadata: $6.([]*metadata.MetadataAttachment)}, nil >>
 	| "alloca" OptInAlloca OptSwiftError Type "," Type Value OptCommaSepMetadataAttachmentList
-	<< &ir.InstAlloca{InAlloca: $1.(bool), SwiftError: $2.(bool), ElemType: $3.(types.Type), NElems: astx.TypeValue($5, $6), Metadata: $7.([]*metadata.MetadataAttachment)}, nil >>
 	| "alloca" OptInAlloca OptSwiftError Type "," Type Value "," Alignment OptCommaSepMetadataAttachmentList
-	<< &ir.InstAlloca{InAlloca: $1.(bool), SwiftError: $2.(bool), ElemType: $3.(types.Type), NElems: astx.TypeValue($5, $6), Alignment: $8.(*ir.Alignment), Metadata: $9.([]*metadata.MetadataAttachment)}, nil >>
 	| "alloca" OptInAlloca OptSwiftError Type "," AddrSpace OptCommaSepMetadataAttachmentList
-	<< &ir.InstAlloca{InAlloca: $1.(bool), SwiftError: $2.(bool), ElemType: $3.(types.Type), AddrSpace: $5.(types.AddrSpace), Metadata: $6.([]*metadata.MetadataAttachment)}, nil >>
 	| "alloca" OptInAlloca OptSwiftError Type "," Alignment "," AddrSpace OptCommaSepMetadataAttachmentList
-	<< &ir.InstAlloca{InAlloca: $1.(bool), SwiftError: $2.(bool), ElemType: $3.(types.Type), Alignment: $5.(*ir.Alignment), AddrSpace: $7.(types.AddrSpace), Metadata: $8.([]*metadata.MetadataAttachment)}, nil >>
 	| "alloca" OptInAlloca OptSwiftError Type "," Type Value "," AddrSpace OptCommaSepMetadataAttachmentList
-	<< &ir.InstAlloca{InAlloca: $1.(bool), SwiftError: $2.(bool), ElemType: $3.(types.Type), NElems: astx.TypeValue($5, $6), AddrSpace: $8.(types.AddrSpace), Metadata: $9.([]*metadata.MetadataAttachment)}, nil >>
 	| "alloca" OptInAlloca OptSwiftError Type "," Type Value "," Alignment "," AddrSpace OptCommaSepMetadataAttachmentList
-	<< &ir.InstAlloca{InAlloca: $1.(bool), SwiftError: $2.(bool), ElemType: $3.(types.Type), NElems: astx.TypeValue($5, $6), Alignment: $8.(*ir.Alignment), AddrSpace: $10.(types.AddrSpace), Metadata: $11.([]*metadata.MetadataAttachment)}, nil >>
-;
+.
 
 OptInAlloca
-	: empty        << false, nil >>
-	| "inalloca"   << true, nil >>
-;
+	= [ "inalloca" ]
+.
 
 OptSwiftError
-	: empty          << false, nil >>
-	| "swifterror"   << true, nil >>
-;
+	= [ "swifterror" ]
+.
 
 // ~~~ [ load ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2101,9 +1906,9 @@ OptSwiftError
 
 // ref: ParseLoad
 //
-//   ::= 'load' 'volatile'? TypeAndValue (',' 'align' i32)?
-//   ::= 'load' 'atomic' 'volatile'? TypeAndValue
-//       'singlethread'? AtomicOrdering (',' 'align' i32)?
+//   ::= "load" "volatile"? TypeAndValue ("," "align" i32)?
+//   ::= "load" "atomic" "volatile"? TypeAndValue
+//       "singlethread"? AtomicOrdering ("," "align" i32)?
 
 // TODO: Simplify when parser generator is not limited by 1 token lookahead.
 //
@@ -2114,16 +1919,12 @@ OptSwiftError
 
 LoadInst
 	// Load.
-	: "load" OptVolatile Type "," Type Value OptCommaSepMetadataAttachmentList
-	<< &ir.InstLoad{Volatile: $1.(bool), ElemType: $2.(types.Type), Src: astx.TypeValue($4, $5), Metadata: $6.([]*metadata.MetadataAttachment)}, nil >>
+	= "load" OptVolatile Type "," Type Value OptCommaSepMetadataAttachmentList
 	| "load" OptVolatile Type "," Type Value "," Alignment OptCommaSepMetadataAttachmentList
-	<< &ir.InstLoad{Volatile: $1.(bool), ElemType: $2.(types.Type), Src: astx.TypeValue($4, $5), Alignment: $7.(*ir.Alignment), Metadata: $8.([]*metadata.MetadataAttachment)}, nil >>
 	// Atomic load.
 	| "load" "atomic" OptVolatile Type "," Type Value OptSyncScope AtomicOrdering OptCommaSepMetadataAttachmentList
-	<< &ir.InstLoad{Atomic: true, Volatile: $2.(bool), ElemType: $3.(types.Type), Src: astx.TypeValue($5, $6), SyncScope: $7.(*ir.SyncScope), AtomicOrdering: $8.(ir.AtomicOrdering), Metadata: $9.([]*metadata.MetadataAttachment)}, nil >>
 	| "load" "atomic" OptVolatile Type "," Type Value OptSyncScope AtomicOrdering "," Alignment OptCommaSepMetadataAttachmentList
-	<< &ir.InstLoad{Atomic: true, Volatile: $2.(bool), ElemType: $3.(types.Type), Src: astx.TypeValue($5, $6), SyncScope: $7.(*ir.SyncScope), AtomicOrdering: $8.(ir.AtomicOrdering), Alignment: $10.(*ir.Alignment), Metadata: $11.([]*metadata.MetadataAttachment)}, nil >>
-;
+.
 
 // ~~~ [ store ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2131,9 +1932,9 @@ LoadInst
 
 // ref: ParseStore
 //
-//   ::= 'store' 'volatile'? TypeAndValue ',' TypeAndValue (',' 'align' i32)?
-//   ::= 'store' 'atomic' 'volatile'? TypeAndValue ',' TypeAndValue
-//       'singlethread'? AtomicOrdering (',' 'align' i32)?
+//   ::= "store" "volatile"? TypeAndValue "," TypeAndValue ("," "align" i32)?
+//   ::= "store" "atomic" "volatile"? TypeAndValue "," TypeAndValue
+//       "singlethread"? AtomicOrdering ("," "align" i32)?
 
 // TODO: Simplify when parser generator is not limited by 1 token lookahead.
 //
@@ -2143,15 +1944,11 @@ LoadInst
 //    ;
 
 StoreInst
-	: "store" OptVolatile Type Value "," Type Value OptCommaSepMetadataAttachmentList
-	<< &ir.InstStore{Volatile: $1.(bool), Src: astx.TypeValue($2, $3), Dst: astx.TypeValue($5, $6), Metadata: $7.([]*metadata.MetadataAttachment)}, nil >>
+	= "store" OptVolatile Type Value "," Type Value OptCommaSepMetadataAttachmentList
 	| "store" OptVolatile Type Value "," Type Value "," Alignment OptCommaSepMetadataAttachmentList
-	<< &ir.InstStore{Volatile: $1.(bool), Src: astx.TypeValue($2, $3), Dst: astx.TypeValue($5, $6), Alignment: $8.(*ir.Alignment), Metadata: $9.([]*metadata.MetadataAttachment)}, nil >>
 	| "store" "atomic" OptVolatile Type Value "," Type Value OptSyncScope AtomicOrdering OptCommaSepMetadataAttachmentList
-	<< &ir.InstStore{Atomic: true, Volatile: $2.(bool), Src: astx.TypeValue($3, $4), Dst: astx.TypeValue($6, $7), SyncScope: $8.(*ir.SyncScope), AtomicOrdering: $9.(ir.AtomicOrdering), Metadata: $10.([]*metadata.MetadataAttachment)}, nil >>
 	| "store" "atomic" OptVolatile Type Value "," Type Value OptSyncScope AtomicOrdering "," Alignment OptCommaSepMetadataAttachmentList
-	<< &ir.InstStore{Atomic: true, Volatile: $2.(bool), Src: astx.TypeValue($3, $4), Dst: astx.TypeValue($6, $7), SyncScope: $8.(*ir.SyncScope), AtomicOrdering: $9.(ir.AtomicOrdering), Alignment: $11.(*ir.Alignment), Metadata: $12.([]*metadata.MetadataAttachment)}, nil >>
-;
+.
 
 // ~~~ [ fence ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2159,12 +1956,11 @@ StoreInst
 
 // ref: ParseFence
 //
-//   ::= 'fence' 'singlethread'? AtomicOrdering
+//   ::= "fence" "singlethread"? AtomicOrdering
 
 FenceInst
-	: "fence" OptSyncScope AtomicOrdering OptCommaSepMetadataAttachmentList
-	<< &ir.InstFence{SyncScope: $1.(*ir.SyncScope), AtomicOrdering: $2.(ir.AtomicOrdering), Metadata: $3.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "fence" OptSyncScope AtomicOrdering OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ cmpxchg ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2172,18 +1968,16 @@ FenceInst
 
 // ref: ParseCmpXchg
 //
-//   ::= 'cmpxchg' 'weak'? 'volatile'? TypeAndValue ',' TypeAndValue ','
-//       TypeAndValue 'singlethread'? AtomicOrdering AtomicOrdering
+//   ::= "cmpxchg" "weak"? "volatile"? TypeAndValue "," TypeAndValue ","
+//       TypeAndValue "singlethread"? AtomicOrdering AtomicOrdering
 
 CmpXchgInst
-	: "cmpxchg" OptWeak OptVolatile Type Value "," Type Value "," Type Value OptSyncScope AtomicOrdering AtomicOrdering OptCommaSepMetadataAttachmentList
-	<< &ir.InstCmpXchg{Weak: $1.(bool), Volatile: $2.(bool), Ptr: astx.TypeValue($3, $4), Cmp: astx.TypeValue($6, $7), New: astx.TypeValue($9, $10), SyncScope: $11.(*ir.SyncScope), Success: $12.(ir.AtomicOrdering), Failure: $13.(ir.AtomicOrdering), Metadata: $14.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "cmpxchg" OptWeak OptVolatile Type Value "," Type Value "," Type Value OptSyncScope AtomicOrdering AtomicOrdering OptCommaSepMetadataAttachmentList
+.
 
 OptWeak
-	: empty    << false, nil >>
-	| "weak"   << true, nil >>
-;
+	= [ "weak" ]
+.
 
 // ~~~ [ atomicrmw ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2191,27 +1985,26 @@ OptWeak
 
 // ref: ParseAtomicRMW
 //
-//   ::= 'atomicrmw' 'volatile'? BinOp TypeAndValue ',' TypeAndValue
-//       'singlethread'? AtomicOrdering
+//   ::= "atomicrmw" "volatile"? BinOp TypeAndValue "," TypeAndValue
+//       "singlethread"? AtomicOrdering
 
 AtomicRMWInst
-	: "atomicrmw" OptVolatile BinOp Type Value "," Type Value OptSyncScope AtomicOrdering OptCommaSepMetadataAttachmentList
-	<< &ir.InstAtomicRMW{Volatile: $1.(bool), Op: $2.(ir.BinOp), Ptr: astx.TypeValue($3, $4), X: astx.TypeValue($6, $7), SyncScope: $8.(*ir.SyncScope), AtomicOrdering: $9.(ir.AtomicOrdering), Metadata: $10.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "atomicrmw" OptVolatile BinOp Type Value "," Type Value OptSyncScope AtomicOrdering OptCommaSepMetadataAttachmentList
+.
 
 BinOp
-	: "add"    << ir.BinOpAdd, nil >>
-	| "and"    << ir.BinOpAnd, nil >>
-	| "max"    << ir.BinOpMax, nil >>
-	| "min"    << ir.BinOpMin, nil >>
-	| "nand"   << ir.BinOpNAnd, nil >>
-	| "or"     << ir.BinOpOr, nil >>
-	| "sub"    << ir.BinOpSub, nil >>
-	| "umax"   << ir.BinOpUMax, nil >>
-	| "umin"   << ir.BinOpUMin, nil >>
-	| "xchg"   << ir.BinOpXChg, nil >>
-	| "xor"    << ir.BinOpXor, nil >>
-;
+	= "add"
+	| "and"
+	| "max"
+	| "min"
+	| "nand"
+	| "or"
+	| "sub"
+	| "umax"
+	| "umin"
+	| "xchg"
+	| "xor"
+.
 
 // ~~~ [ getelementptr ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2219,7 +2012,7 @@ BinOp
 
 // ref: ParseGetElementPtr
 //
-//   ::= 'getelementptr' 'inbounds'? TypeAndValue (',' TypeAndValue)*
+//   ::= "getelementptr" "inbounds"? TypeAndValue ("," TypeAndValue)*
 
 // TODO: Simplify when parser generator is not limited by 1 token lookahead.
 //
@@ -2228,11 +2021,9 @@ BinOp
 //    ;
 
 GetElementPtrInst
-	: "getelementptr" OptInBounds Type "," Type Value OptCommaSepMetadataAttachmentList
-	<< &ir.InstGetElementPtr{InBounds: $1.(bool), ElemType: $2.(types.Type), Src: astx.TypeValue($4, $5), Metadata: $6.([]*metadata.MetadataAttachment)}, nil >>
+	= "getelementptr" OptInBounds Type "," Type Value OptCommaSepMetadataAttachmentList
 	| "getelementptr" OptInBounds Type "," Type Value "," CommaSepTypeValueList OptCommaSepMetadataAttachmentList
-	<< &ir.InstGetElementPtr{InBounds: $1.(bool), ElemType: $2.(types.Type), Src: astx.TypeValue($4, $5), Indices: $7.([]value.Value), Metadata: $8.([]*metadata.MetadataAttachment)}, nil >>
-;
+.
 
 // --- [ Conversion instructions ] ---------------------------------------------
 
@@ -2242,12 +2033,11 @@ GetElementPtrInst
 
 // ref: ParseCast
 //
-//   ::= CastOpc TypeAndValue 'to' Type
+//   ::= CastOpc TypeAndValue "to" Type
 
 TruncInst
-	: "trunc" Type Value "to" Type OptCommaSepMetadataAttachmentList
-	<< &ir.InstTrunc{From: astx.TypeValue($1, $2), To: $4.(types.Type), Metadata: $5.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "trunc" Type Value "to" Type OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ zext ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2255,12 +2045,11 @@ TruncInst
 
 // ref: ParseCast
 //
-//   ::= CastOpc TypeAndValue 'to' Type
+//   ::= CastOpc TypeAndValue "to" Type
 
 ZExtInst
-	: "zext" Type Value "to" Type OptCommaSepMetadataAttachmentList
-	<< &ir.InstZExt{From: astx.TypeValue($1, $2), To: $4.(types.Type), Metadata: $5.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "zext" Type Value "to" Type OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ sext ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2268,12 +2057,11 @@ ZExtInst
 
 // ref: ParseCast
 //
-//   ::= CastOpc TypeAndValue 'to' Type
+//   ::= CastOpc TypeAndValue "to" Type
 
 SExtInst
-	: "sext" Type Value "to" Type OptCommaSepMetadataAttachmentList
-	<< &ir.InstSExt{From: astx.TypeValue($1, $2), To: $4.(types.Type), Metadata: $5.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "sext" Type Value "to" Type OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ fptrunc ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2281,12 +2069,11 @@ SExtInst
 
 // ref: ParseCast
 //
-//   ::= CastOpc TypeAndValue 'to' Type
+//   ::= CastOpc TypeAndValue "to" Type
 
 FPTruncInst
-	: "fptrunc" Type Value "to" Type OptCommaSepMetadataAttachmentList
-	<< &ir.InstFPTrunc{From: astx.TypeValue($1, $2), To: $4.(types.Type), Metadata: $5.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "fptrunc" Type Value "to" Type OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ fpext ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2294,12 +2081,11 @@ FPTruncInst
 
 // ref: ParseCast
 //
-//   ::= CastOpc TypeAndValue 'to' Type
+//   ::= CastOpc TypeAndValue "to" Type
 
 FPExtInst
-	: "fpext" Type Value "to" Type OptCommaSepMetadataAttachmentList
-	<< &ir.InstFPExt{From: astx.TypeValue($1, $2), To: $4.(types.Type), Metadata: $5.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "fpext" Type Value "to" Type OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ fptoui ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2307,12 +2093,11 @@ FPExtInst
 
 // ref: ParseCast
 //
-//   ::= CastOpc TypeAndValue 'to' Type
+//   ::= CastOpc TypeAndValue "to" Type
 
 FPToUIInst
-	: "fptoui" Type Value "to" Type OptCommaSepMetadataAttachmentList
-	<< &ir.InstFPToUI{From: astx.TypeValue($1, $2), To: $4.(types.Type), Metadata: $5.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "fptoui" Type Value "to" Type OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ fptosi ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2320,12 +2105,11 @@ FPToUIInst
 
 // ref: ParseCast
 //
-//   ::= CastOpc TypeAndValue 'to' Type
+//   ::= CastOpc TypeAndValue "to" Type
 
 FPToSIInst
-	: "fptosi" Type Value "to" Type OptCommaSepMetadataAttachmentList
-	<< &ir.InstFPToSI{From: astx.TypeValue($1, $2), To: $4.(types.Type), Metadata: $5.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "fptosi" Type Value "to" Type OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ uitofp ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2333,12 +2117,11 @@ FPToSIInst
 
 // ref: ParseCast
 //
-//   ::= CastOpc TypeAndValue 'to' Type
+//   ::= CastOpc TypeAndValue "to" Type
 
 UIToFPInst
-	: "uitofp" Type Value "to" Type OptCommaSepMetadataAttachmentList
-	<< &ir.InstUIToFP{From: astx.TypeValue($1, $2), To: $4.(types.Type), Metadata: $5.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "uitofp" Type Value "to" Type OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ sitofp ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2346,12 +2129,11 @@ UIToFPInst
 
 // ref: ParseCast
 //
-//   ::= CastOpc TypeAndValue 'to' Type
+//   ::= CastOpc TypeAndValue "to" Type
 
 SIToFPInst
-	: "sitofp" Type Value "to" Type OptCommaSepMetadataAttachmentList
-	<< &ir.InstSIToFP{From: astx.TypeValue($1, $2), To: $4.(types.Type), Metadata: $5.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "sitofp" Type Value "to" Type OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ ptrtoint ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2359,12 +2141,11 @@ SIToFPInst
 
 // ref: ParseCast
 //
-//   ::= CastOpc TypeAndValue 'to' Type
+//   ::= CastOpc TypeAndValue "to" Type
 
 PtrToIntInst
-	: "ptrtoint" Type Value "to" Type OptCommaSepMetadataAttachmentList
-	<< &ir.InstPtrToInt{From: astx.TypeValue($1, $2), To: $4.(types.Type), Metadata: $5.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "ptrtoint" Type Value "to" Type OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ inttoptr ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2372,12 +2153,11 @@ PtrToIntInst
 
 // ref: ParseCast
 //
-//   ::= CastOpc TypeAndValue 'to' Type
+//   ::= CastOpc TypeAndValue "to" Type
 
 IntToPtrInst
-	: "inttoptr" Type Value "to" Type OptCommaSepMetadataAttachmentList
-	<< &ir.InstIntToPtr{From: astx.TypeValue($1, $2), To: $4.(types.Type), Metadata: $5.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "inttoptr" Type Value "to" Type OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ bitcast ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2385,12 +2165,11 @@ IntToPtrInst
 
 // ref: ParseCast
 //
-//   ::= CastOpc TypeAndValue 'to' Type
+//   ::= CastOpc TypeAndValue "to" Type
 
 BitCastInst
-	: "bitcast" Type Value "to" Type OptCommaSepMetadataAttachmentList
-	<< &ir.InstBitCast{From: astx.TypeValue($1, $2), To: $4.(types.Type), Metadata: $5.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "bitcast" Type Value "to" Type OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ addrspacecast ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2398,12 +2177,11 @@ BitCastInst
 
 // ref: ParseCast
 //
-//   ::= CastOpc TypeAndValue 'to' Type
+//   ::= CastOpc TypeAndValue "to" Type
 
 AddrSpaceCastInst
-	: "addrspacecast" Type Value "to" Type OptCommaSepMetadataAttachmentList
-	<< &ir.InstAddrSpaceCast{From: astx.TypeValue($1, $2), To: $4.(types.Type), Metadata: $5.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "addrspacecast" Type Value "to" Type OptCommaSepMetadataAttachmentList
+.
 
 // --- [ Other instructions ] --------------------------------------------------
 
@@ -2413,12 +2191,11 @@ AddrSpaceCastInst
 
 // ref: ParseCompare
 //
-//  ::= 'icmp' IPredicates TypeAndValue ',' Value
+//  ::= "icmp" IPredicates TypeAndValue "," Value
 
 ICmpInst
-	: "icmp" IPred Type Value "," Value OptCommaSepMetadataAttachmentList
-	<< &ir.InstICmp{Pred: $1.(ir.IPred), X: astx.TypeValue($2, $3), Y: astx.TypeValue($2, $5), Metadata: $6.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "icmp" IPred Type Value "," Value OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ fcmp ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2426,12 +2203,11 @@ ICmpInst
 
 // ref: ParseCompare
 //
-//  ::= 'fcmp' FPredicates TypeAndValue ',' Value
+//  ::= "fcmp" FPredicates TypeAndValue "," Value
 
 FCmpInst
-	: "fcmp" FastMathFlags FPred Type Value "," Value OptCommaSepMetadataAttachmentList
-	<< &ir.InstFCmp{FastMathFlags: X[1].([]ir.FastMathFlag), Pred: $2.(ir.FPred), X: astx.TypeValue($3, $4), Y: astx.TypeValue($3, $6), Metadata: $7.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "fcmp" FastMathFlags FPred Type Value "," Value OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ phi ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2439,24 +2215,20 @@ FCmpInst
 
 // ref: ParsePHI
 //
-//   ::= 'phi' Type '[' Value ',' Value ']' (',' '[' Value ',' Value ']')*
+//   ::= "phi" Type "[" Value "," Value "]" ("," "[" Value "," Value "]")*
 
 PhiInst
-	: "phi" Type IncList OptCommaSepMetadataAttachmentList
-	<< &ir.InstPhi{Typ: $1.(types.Type), Incs: $2.([]*ir.Incoming), Metadata: $3.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "phi" Type IncList OptCommaSepMetadataAttachmentList
+.
 
 IncList
-	: Inc
-	<< []*ir.Incoming{$0.(*ir.Incoming)}, nil >>
+	= Inc
 	| IncList "," Inc
-	<< append($0.([]*ir.Incoming), $2.(*ir.Incoming)), nil >>
-;
+.
 
 Inc
-	: "[" Value "," LocalIdent "]"
-	<< &ir.Incoming{X: $1.(value.Value), Pred: &ir.BasicBlock{Name: astx.LocalIdent($3)}}, nil >>
-;
+	= "[" Value "," LocalIdent "]"
+.
 
 // ~~~ [ select ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2464,12 +2236,11 @@ Inc
 
 // ref: ParseSelect
 //
-//   ::= 'select' TypeAndValue ',' TypeAndValue ',' TypeAndValue
+//   ::= "select" TypeAndValue "," TypeAndValue "," TypeAndValue
 
 SelectInst
-	: "select" Type Value "," Type Value "," Type Value OptCommaSepMetadataAttachmentList
-	<< &ir.InstSelect{Cond: astx.TypeValue($1, $2), X: astx.TypeValue($4, $5), Y: astx.TypeValue($7, $8), Metadata: $9.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "select" Type Value "," Type Value "," Type Value OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ call ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2477,26 +2248,22 @@ SelectInst
 
 // ref: ParseCall
 //
-//   ::= 'call' OptionalFastMathFlags OptionalCallingConv
+//   ::= "call" OptionalFastMathFlags OptionalCallingConv
 //           OptionalAttrs Type Value ParameterList OptionalAttrs
-//   ::= 'tail' 'call' OptionalFastMathFlags OptionalCallingConv
+//   ::= "tail" "call" OptionalFastMathFlags OptionalCallingConv
 //           OptionalAttrs Type Value ParameterList OptionalAttrs
-//   ::= 'musttail' 'call' OptionalFastMathFlags OptionalCallingConv
+//   ::= "musttail" "call" OptionalFastMathFlags OptionalCallingConv
 //           OptionalAttrs Type Value ParameterList OptionalAttrs
-//   ::= 'notail' 'call'  OptionalFastMathFlags OptionalCallingConv
+//   ::= "notail" "call"  OptionalFastMathFlags OptionalCallingConv
 //           OptionalAttrs Type Value ParameterList OptionalAttrs
 
 CallInst
-	: OptTail "call" FastMathFlags OptCallingConv ReturnAttrs Type Value "(" Args ")" FuncAttrs OperandBundles OptCommaSepMetadataAttachmentList
-	<< &ir.InstCall{Tail: $0.(ir.Tail), FastMathFlags: $2.([]ir.FastMathFlag), CallingConv: $3.(ir.CallingConv), ReturnAttrs: $4.([]ir.ReturnAttribute), RetType: $5.(types.Type), Callee: $6.(value.Value), Args: $8.([]ir.Argument), FuncAttrs: $10.([]ir.FuncAttribute), OperandBundles: $11.([]*ir.OperandBundle), Metadata: $12.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= OptTail "call" FastMathFlags OptCallingConv ReturnAttrs Type Value "(" Args ")" FuncAttrs OperandBundles OptCommaSepMetadataAttachmentList
+.
 
 OptTail
-	: empty        << ir.TailNone, nil >>
-	| "musttail"   << ir.TailMustTail, nil >>
-	| "notail"     << ir.TailNoTail, nil >>
-	| "tail"       << ir.TailTail, nil >>
-;
+	= [ ( "musttail" | "notail" | "tail" ) ]
+.
 
 // ~~~ [ va_arg ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2504,12 +2271,11 @@ OptTail
 
 // ref: ParseVA_Arg
 //
-//   ::= 'va_arg' TypeAndValue ',' Type
+//   ::= "va_arg" TypeAndValue "," Type
 
 VAArgInst
-	: "va_arg" Type Value "," Type OptCommaSepMetadataAttachmentList
-	<< &ir.InstVAArg{ArgList: astx.TypeValue($1, $2), ArgType: $4.(types.Type), Metadata: $5.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "va_arg" Type Value "," Type OptCommaSepMetadataAttachmentList
+.
 
 // ~~~ [ landingpad ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2517,63 +2283,53 @@ VAArgInst
 
 // ref: ParseLandingPad
 //
-//   ::= 'landingpad' Type 'personality' TypeAndValue 'cleanup'? Clause+
+//   ::= "landingpad" Type "personality" TypeAndValue "cleanup"? Clause+
 //  Clause
-//   ::= 'catch' TypeAndValue
-//   ::= 'filter'
-//   ::= 'filter' TypeAndValue ( ',' TypeAndValue )*
+//   ::= "catch" TypeAndValue
+//   ::= "filter"
+//   ::= "filter" TypeAndValue ( "," TypeAndValue )*
 
 LandingPadInst
-	: "landingpad" Type OptCleanup Clauses OptCommaSepMetadataAttachmentList
-	<< &ir.InstLandingPad{Typ: $1.(types.Type), Cleanup: $2.(bool), Clauses: $3.([]*ir.Clause), Metadata: $4.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "landingpad" Type OptCleanup Clauses OptCommaSepMetadataAttachmentList
+.
 
 OptCleanup
-	: empty       << false, nil >>
-	| "cleanup"   << true, nil >>
-;
+	= [ "cleanup" ]
+.
 
 Clauses
-	: empty
-	<< ([]*ir.Clause)(nil), nil >>
-	| ClauseList
-;
+	= [ ClauseList ]
+.
 
 ClauseList
-	: Clause
-	<< []*ir.Clause{$0.(*ir.Clause)}, nil >>
+	= Clause
 	| ClauseList Clause
-	<< append($0.([]*ir.Clause), $1.(*ir.Clause)), nil >>
-;
+.
 
 Clause
-	: "catch" Type Value
-	<< &ir.Clause{Catch: true, X: astx.TypeValue($1, $2)}, nil >>
+	= "catch" Type Value
 	| "filter" Type ArrayConst
-	<< &ir.Clause{X: astx.TypeValue($1, $2)}, nil >>
-;
+.
 
 // --- [ catchpad ] ------------------------------------------------------------
 
 // ref: ParseCatchPad
 //
-//   ::= 'catchpad' ParamList 'to' TypeAndValue 'unwind' TypeAndValue
+//   ::= "catchpad" ParamList "to" TypeAndValue "unwind" TypeAndValue
 
 CatchPadInst
-	: "catchpad" "within" LocalIdent "[" ExceptionArgs "]" OptCommaSepMetadataAttachmentList
-	<< &ir.InstCatchPad{Scope: $2.(*ast.LocalIdent), Args: $4.([]ir.Argument), Metadata: $6.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "catchpad" "within" LocalIdent "[" ExceptionArgs "]" OptCommaSepMetadataAttachmentList
+.
 
 // --- [ cleanuppad ] ----------------------------------------------------------
 
 // ref: ParseCleanupPad
 //
-//   ::= 'cleanuppad' within Parent ParamList
+//   ::= "cleanuppad" within Parent ParamList
 
 CleanupPadInst
-	: "cleanuppad" "within" ExceptionScope "[" ExceptionArgs "]" OptCommaSepMetadataAttachmentList
-	<< &ir.InstCleanupPad{Scope: $2.(ir.ExceptionScope), Args: $4.([]ir.Argument), Metadata: $6.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "cleanuppad" "within" ExceptionScope "[" ExceptionArgs "]" OptCommaSepMetadataAttachmentList
+.
 
 // === [ Terminators ] =========================================================
 
@@ -2582,7 +2338,7 @@ CleanupPadInst
 // ref: ParseInstruction
 
 Terminator
-	: RetTerm
+	= RetTerm
 	| BrTerm
 	| CondBrTerm
 	| SwitchTerm
@@ -2593,7 +2349,7 @@ Terminator
 	| CatchRetTerm
 	| CleanupRetTerm
 	| UnreachableTerm
-;
+.
 
 // --- [ ret ] -----------------------------------------------------------------
 
@@ -2601,17 +2357,15 @@ Terminator
 
 // ref: ParseRet
 //
-//   ::= 'ret' void (',' !dbg, !1)*
-//   ::= 'ret' TypeAndValue (',' !dbg, !1)*
+//   ::= "ret" void ("," !dbg, !1)*
+//   ::= "ret" TypeAndValue ("," !dbg, !1)*
 
 RetTerm
 	// Void return.
-	: "ret" VoidType OptCommaSepMetadataAttachmentList
-	<< &ir.TermRet{Metadata: $2.([]*metadata.MetadataAttachment)}, nil >>
+	= "ret" VoidType OptCommaSepMetadataAttachmentList
 	// Value return.
 	| "ret" ConcreteType Value OptCommaSepMetadataAttachmentList
-	<< &ir.TermRet{X: astx.TypeValue($1, $2), Metadata: $3.([]*metadata.MetadataAttachment)}, nil >>
-;
+.
 
 // --- [ br ] ------------------------------------------------------------------
 
@@ -2619,20 +2373,18 @@ RetTerm
 
 // ref: ParseBr
 //
-//   ::= 'br' TypeAndValue
-//   ::= 'br' TypeAndValue ',' TypeAndValue ',' TypeAndValue
+//   ::= "br" TypeAndValue
+//   ::= "br" TypeAndValue "," TypeAndValue "," TypeAndValue
 
 // Unconditional branch.
 BrTerm
-	: "br" LabelType LocalIdent OptCommaSepMetadataAttachmentList
-	<< &ir.TermBr{Target: astx.Label($1, $2), Metadata: $3.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "br" LabelType LocalIdent OptCommaSepMetadataAttachmentList
+.
 
 // Conditional branch.
 CondBrTerm
-	: "br" IntType Value "," LabelType LocalIdent "," LabelType LocalIdent OptCommaSepMetadataAttachmentList
-	<< &ir.TermCondBr{Cond: astx.TypeValue($1, $2), TargetTrue: astx.Label($4, $5), TargetFalse: astx.Label($7, $8), Metadata: $9.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "br" IntType Value "," LabelType LocalIdent "," LabelType LocalIdent OptCommaSepMetadataAttachmentList
+.
 
 // --- [ switch ] --------------------------------------------------------------
 
@@ -2640,32 +2392,26 @@ CondBrTerm
 
 // ref: ParseSwitch
 //
-//    ::= 'switch' TypeAndValue ',' TypeAndValue '[' JumpTable ']'
+//    ::= "switch" TypeAndValue "," TypeAndValue "[" JumpTable "]"
 //  JumpTable
-//    ::= (TypeAndValue ',' TypeAndValue)*
+//    ::= (TypeAndValue "," TypeAndValue)*
 
 SwitchTerm
-	: "switch" Type Value "," LabelType LocalIdent "[" Cases "]" OptCommaSepMetadataAttachmentList
-	<< &ir.TermSwitch{X: astx.TypeValue($1, $2), Default: astx.Label($4, $5), Cases: $7.([]*ir.Case), Metadata: $9.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "switch" Type Value "," LabelType LocalIdent "[" Cases "]" OptCommaSepMetadataAttachmentList
+.
 
 Cases
-	: empty
-	<< ([]*ir.Case)(nil), nil >>
-	| CaseList
-;
+	= [ CaseList ]
+.
 
 CaseList
-	: Case
-	<< []*ir.Case{$0.(*ir.Case)}, nil >>
+	= Case
 	| CaseList Case
-	<< append($0.([]*ir.Case), $1.(*ir.Case)), nil >>
-;
+.
 
 Case
-	: Type IntConst "," LabelType LocalIdent
-	<< &ir.Case{X: astx.TypeConst($0, $1), Target: astx.Label($3, $4)}, nil >>
-;
+	= Type IntConst "," LabelType LocalIdent
+.
 
 // --- [ indirectbr ] ----------------------------------------------------------
 
@@ -2673,24 +2419,20 @@ Case
 
 // ref: ParseIndirectBr
 //
-//    ::= 'indirectbr' TypeAndValue ',' '[' LabelList ']'
+//    ::= "indirectbr" TypeAndValue "," "[" LabelList "]"
 
 IndirectBrTerm
-	: "indirectbr" Type Value "," "[" LabelList "]" OptCommaSepMetadataAttachmentList
-	<< &ir.TermIndirectBr{Addr: astx.TypeValue($1, $2), Targets: $5.([]*ir.BasicBlock), Metadata: $7.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "indirectbr" Type Value "," "[" LabelList "]" OptCommaSepMetadataAttachmentList
+.
 
 LabelList
-	: Label
-	<< []*ir.BasicBlock{$0.(*ir.BasicBlock)}, nil >>
+	= Label
 	| LabelList "," Label
-	<< append($0.([]*ir.BasicBlock), $2.(*ir.BasicBlock)), nil >>
-;
+.
 
 Label
-	: LabelType LocalIdent
-	<< astx.Label($0, $1), nil >>
-;
+	= LabelType LocalIdent
+.
 
 // --- [ invoke ] --------------------------------------------------------------
 
@@ -2698,13 +2440,12 @@ Label
 
 // ref: ParseInvoke
 //
-//   ::= 'invoke' OptionalCallingConv OptionalAttrs Type Value ParamList
-//       OptionalAttrs 'to' TypeAndValue 'unwind' TypeAndValue
+//   ::= "invoke" OptionalCallingConv OptionalAttrs Type Value ParamList
+//       OptionalAttrs "to" TypeAndValue "unwind" TypeAndValue
 
 InvokeTerm
-	: "invoke" OptCallingConv ReturnAttrs Type Value "(" Args ")" FuncAttrs OperandBundles "to" LabelType LocalIdent "unwind" LabelType LocalIdent OptCommaSepMetadataAttachmentList
-	<< &ir.TermInvoke{CallingConv: $1.(ir.CallingConv), ReturnAttrs: $2.([]ir.ReturnAttribute), RetType: $3.(types.Type), Callee: $4.(value.Value), Args: $6.([]ir.Argument), FuncAttrs: $8.([]ir.FuncAttribute), OperandBundles: $9.([]*ir.OperandBundle), Normal: astx.Label($11, $12), Exception: astx.Label($14, $15), Metadata: $16.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "invoke" OptCallingConv ReturnAttrs Type Value "(" Args ")" FuncAttrs OperandBundles "to" LabelType LocalIdent "unwind" LabelType LocalIdent OptCommaSepMetadataAttachmentList
+.
 
 // --- [ resume ] --------------------------------------------------------------
 
@@ -2712,12 +2453,11 @@ InvokeTerm
 
 // ref: ParseResume
 //
-//   ::= 'resume' TypeAndValue
+//   ::= "resume" TypeAndValue
 
 ResumeTerm
-	: "resume" Type Value OptCommaSepMetadataAttachmentList
-	<< &ir.TermResume{X: astx.TypeValue($1, $2), Metadata: $3.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "resume" Type Value OptCommaSepMetadataAttachmentList
+.
 
 // --- [ catchswitch ] ---------------------------------------------------------
 
@@ -2725,12 +2465,11 @@ ResumeTerm
 
 // ref: ParseCatchSwitch
 //
-//   ::= 'catchswitch' within Parent
+//   ::= "catchswitch" within Parent
 
 CatchSwitchTerm
-	: "catchswitch" "within" ExceptionScope "[" LabelList "]" "unwind" UnwindTarget OptCommaSepMetadataAttachmentList
-	<< &ir.TermCatchSwitch{Scope: $2.(ir.ExceptionScope), Handlers: $4.([]*ir.BasicBlock), UnwindTarget: $7.(ir.UnwindTarget), Metadata: $8.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "catchswitch" "within" ExceptionScope "[" LabelList "]" "unwind" UnwindTarget OptCommaSepMetadataAttachmentList
+.
 
 // --- [ catchret ] ------------------------------------------------------------
 
@@ -2738,12 +2477,11 @@ CatchSwitchTerm
 
 // ref: ParseCatchRet
 //
-//   ::= 'catchret' from Parent Value 'to' TypeAndValue
+//   ::= "catchret" from Parent Value "to" TypeAndValue
 
 CatchRetTerm
-	: "catchret" "from" Value "to" LabelType LocalIdent OptCommaSepMetadataAttachmentList
-	<< &ir.TermCatchRet{From: $2.(value.Value), To: astx.Label($4, $5), Metadata: $6.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "catchret" "from" Value "to" LabelType LocalIdent OptCommaSepMetadataAttachmentList
+.
 
 // --- [ cleanupret ] ----------------------------------------------------------
 
@@ -2751,12 +2489,11 @@ CatchRetTerm
 
 // ref: ParseCleanupRet
 //
-//   ::= 'cleanupret' from Value unwind ('to' 'caller' | TypeAndValue)
+//   ::= "cleanupret" from Value unwind ("to" "caller" | TypeAndValue)
 
 CleanupRetTerm
-	: "cleanupret" "from" Value "unwind" UnwindTarget OptCommaSepMetadataAttachmentList
-	<< &ir.TermCleanupRet{From: $2.(value.Value), UnwindTarget: $4.(ir.UnwindTarget), Metadata: $5.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "cleanupret" "from" Value "unwind" UnwindTarget OptCommaSepMetadataAttachmentList
+.
 
 // --- [ unreachable ] ---------------------------------------------------------
 
@@ -2765,18 +2502,15 @@ CleanupRetTerm
 // ref: ParseInstruction
 
 UnreachableTerm
-	: "unreachable" OptCommaSepMetadataAttachmentList
-	<< &ir.TermUnreachable{Metadata: $1.([]*metadata.MetadataAttachment)}, nil >>
-;
+	= "unreachable" OptCommaSepMetadataAttachmentList
+.
 
 // ___ [ Helpers ] _____________________________________________________________
 
 UnwindTarget
-	: "to" "caller"
-	<< &ir.UnwindToCaller{}, nil >>
+	= "to" "caller"
 	| LabelType LocalIdent
-	<< astx.Label($0, $1), nil >>
-;
+.
 // === [ Metadata Nodes and Metadata Strings ] =================================
 
 // https://llvm.org/docs/LangRef.html#metadata-nodes-and-metadata-strings
@@ -2786,40 +2520,34 @@ UnwindTarget
 // ref: ParseMDTuple
 
 MDTuple
-	: "!" MDFields
-	<< &metadata.MDTuple{Fields: $1.([]metadata.MDField)}, nil >>
-;
+	= "!" MDFields
+.
 
 // ref: ParseMDNodeVector
 //
-//   ::= { Element (',' Element)* }
+//   ::= { Element ("," Element)* }
 //  Element
-//   ::= 'null' | TypeAndValue
+//   ::= "null" | TypeAndValue
 
 // ref: ParseMDField(MDFieldList &)
 
 MDFields
-	: "{" "}"
-	<< ([]metadata.MDField)(nil), nil >>
+	= "{" "}"
 	| "{" MDFieldList "}"
-	<< $1, nil >>
-;
+.
 
 MDFieldList
-	: MDField
-	<< []metadata.MDField{$0.(metadata.MDField)}, nil >>
+	= MDField
 	| MDFieldList "," MDField
-	<< append($0.([]metadata.MDField), $2.(metadata.MDField)), nil >>
-;
+.
 
 // ref: ParseMDField(MDField &)
 
 MDField
 	// Null is a special case since it is typeless.
-	: "null"
-	<< &metadata.MDNull{}, nil >>
+	= "null"
 	| Metadata
-;
+.
 
 // --- [ Metadata ] ------------------------------------------------------------
 
@@ -2834,26 +2562,24 @@ MDField
 //  ::= !DILocation(...)
 
 Metadata
-	: Type Value
-	<< astx.TypeValue($0, $1), nil >>
+	= Type Value
 	| MDString
 	// !{ ... }
 	| MDTuple
 	// !7
 	| MetadataID
 	| SpecializedMDNode
-;
+.
 
 // --- [ Metadata String ] -----------------------------------------------------
 
 // ref: ParseMDString
 //
-//   ::= '!' STRINGCONSTANT
+//   ::= "!" STRINGCONSTANT
 
 MDString
-	: "!" StringLit
-	<< &metadata.MDString{Value: $1.(string)}, nil >>
-;
+	= "!" StringLit
+.
 
 // --- [ Metadata Attachment ] -------------------------------------------------
 
@@ -2862,9 +2588,8 @@ MDString
 //   ::= !dbg !42
 
 MetadataAttachment
-	: MetadataName MDNode
-	<< &metadata.MetadataAttachment{Name: astx.MetadataName($0), Node: $1.(metadata.MDNode)}, nil >>
-;
+	= MetadataName MDNode
+.
 
 // --- [ Metadata Node ] -------------------------------------------------------
 
@@ -2876,11 +2601,11 @@ MetadataAttachment
 
 MDNode
 	// !{ ... }
-	: MDTuple
+	= MDTuple
 	// !42
 	| MetadataID
 	| SpecializedMDNode
-;
+.
 
 // ### [ Helper productions ] ##################################################
 
@@ -2889,35 +2614,26 @@ MDNode
 //   ::= (!dbg !57)*
 
 MetadataAttachments
-	: empty
-	<< ([]*metadata.MetadataAttachment)(nil), nil >>
-	| MetadataAttachmentList
-;
+	= [ MetadataAttachmentList ]
+.
 
 MetadataAttachmentList
-	: MetadataAttachment
-	<< []*metadata.MetadataAttachment{$0.(*metadata.MetadataAttachment)}, nil >>
+	= MetadataAttachment
 	| MetadataAttachmentList MetadataAttachment
-	<< append($0.([]*metadata.MetadataAttachment), $1.(*metadata.MetadataAttachment)), nil >>
-;
+.
 
 // ref: ParseInstructionMetadata
 //
-//   ::= !dbg !42 (',' !dbg !57)*
+//   ::= !dbg !42 ("," !dbg !57)*
 
 OptCommaSepMetadataAttachmentList
-	: empty
-	<< ([]*metadata.MetadataAttachment)(nil), nil >>
-	| "," CommaSepMetadataAttachmentList
-	<< $1, nil >>
-;
+	= [ "," CommaSepMetadataAttachmentList ]
+.
 
 CommaSepMetadataAttachmentList
-	: MetadataAttachment
-	<< []*metadata.MetadataAttachment{$0.(*metadata.MetadataAttachment)}, nil >>
+	= MetadataAttachment
 	| CommaSepMetadataAttachmentList "," MetadataAttachment
-	<< append($0.([]*metadata.MetadataAttachment), $2.(*metadata.MetadataAttachment)), nil >>
-;
+.
 
 // --- [ Specialized Metadata Nodes ] ------------------------------------------
 
@@ -2926,7 +2642,7 @@ CommaSepMetadataAttachmentList
 // ref: ParseSpecializedMDNode
 
 SpecializedMDNode
-	: DICompileUnit
+	= DICompileUnit
 	| DIFile
 	| DIBasicType
 	| DISubroutineType
@@ -2951,7 +2667,7 @@ SpecializedMDNode
 	| DIMacro
 	| DIMacroFile
 	| GenericDINode // not in spec as of 2018-02-21
-;
+.
 
 // ~~~ [ DICompileUnit ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2984,57 +2700,37 @@ SpecializedMDNode
 //  OPTIONAL(gnuPubnames, MDBoolField, = false);
 
 DICompileUnit
-	: "!DICompileUnit" "(" DICompileUnitFields ")"
-	<< astx.NewDICompileUnit($2.([]*astx.SpecializedMDField)) >>
-;
+	= "!DICompileUnit" "(" DICompileUnitFields ")"
+.
 
 DICompileUnitFields
-	: empty
-	<< ([]*astx.SpecializedMDField)(nil), nil >>
-	| DICompileUnitFieldList
-;
+	= [ DICompileUnitFieldList ]
+.
 
 DICompileUnitFieldList
-	: DICompileUnitField
-	<< []*astx.SpecializedMDField{$0.(*astx.SpecializedMDField)}, nil >>
+	= DICompileUnitField
 	| DICompileUnitFieldList "," DICompileUnitField
-	<< append($0.([]*astx.SpecializedMDField), $2.(*astx.SpecializedMDField)), nil >>
-;
+.
 
 DICompileUnitField
-	: "language:" DwarfLang
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
+	= "language:" DwarfLang
 	| FileField
 	| "producer:" StringLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| IsOptimizedField
 	| "flags:" StringLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| "runtimeVersion:" IntLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| "splitDebugFilename:" StringLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| "emissionKind:" EmissionKind
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| "enums:" MDField
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| "retainedTypes:" MDField
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| "globals:" MDField
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| "imports:" MDField
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| "macros:" MDField
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| "dwoId:" IntLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| "splitDebugInlining:" BoolLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| "debugInfoForProfiling:" BoolLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| "gnuPubnames:" BoolLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+.
 
 // ~~~ [ DIFile ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -3052,33 +2748,24 @@ DICompileUnitField
 //  OPTIONAL(checksum, MDStringField, );
 
 DIFile
-	: "!DIFile" "(" DIFileFields ")"
-	<< astx.NewDIFile($2.([]*astx.SpecializedMDField)) >>
-;
+	= "!DIFile" "(" DIFileFields ")"
+.
 
 DIFileFields
-	: empty
-	<< ([]*astx.SpecializedMDField)(nil), nil >>
-	| DIFileFieldList
-;
+	= [ DIFileFieldList ]
+.
 
 DIFileFieldList
-	: DIFileField
-	<< []*astx.SpecializedMDField{$0.(*astx.SpecializedMDField)}, nil >>
+	= DIFileField
 	| DIFileFieldList "," DIFileField
-	<< append($0.([]*astx.SpecializedMDField), $2.(*astx.SpecializedMDField)), nil >>
-;
+.
 
 DIFileField
-	: "filename:" StringLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
+	= "filename:" StringLit
 	| "directory:" StringLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| "checksumkind:" ChecksumKind
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| "checksum:" StringLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+.
 
 // ~~~ [ DIBasicType ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -3095,31 +2782,25 @@ DIFileField
 //  OPTIONAL(encoding, DwarfAttEncodingField, );
 
 DIBasicType
-	: "!DIBasicType" "(" DIBasicTypeFields ")"
-	<< astx.NewDIBasicType($2.([]*astx.SpecializedMDField)) >>
-;
+	= "!DIBasicType" "(" DIBasicTypeFields ")"
+.
 
 DIBasicTypeFields
-	: empty
-	<< ([]*astx.SpecializedMDField)(nil), nil >>
-	| DIBasicTypeFieldList
-;
+	= [ DIBasicTypeFieldList ]
+.
 
 DIBasicTypeFieldList
-	: DIBasicTypeField
-	<< []*astx.SpecializedMDField{$0.(*astx.SpecializedMDField)}, nil >>
+	= DIBasicTypeField
 	| DIBasicTypeFieldList "," DIBasicTypeField
-	<< append($0.([]*astx.SpecializedMDField), $2.(*astx.SpecializedMDField)), nil >>
-;
+.
 
 DIBasicTypeField
-	: TagField
+	= TagField
 	| NameField
 	| SizeField
 	| AlignField
 	| "encoding:" DwarfAttEncoding
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+.
 
 // ~~~ [ DISubroutineType ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -3132,30 +2813,23 @@ DIBasicTypeField
 //  REQUIRED(types, MDField, );
 
 DISubroutineType
-	: "!DISubroutineType" "(" DISubroutineTypeFields ")"
-	<< astx.NewDISubroutineType($2.([]*astx.SpecializedMDField)) >>
-;
+	= "!DISubroutineType" "(" DISubroutineTypeFields ")"
+.
 
 DISubroutineTypeFields
-	: empty
-	<< ([]*astx.SpecializedMDField)(nil), nil >>
-	| DISubroutineTypeFieldList
-;
+	= [ DISubroutineTypeFieldList ]
+.
 
 DISubroutineTypeFieldList
-	: DISubroutineTypeField
-	<< []*astx.SpecializedMDField{$0.(*astx.SpecializedMDField)}, nil >>
+	= DISubroutineTypeField
 	| DISubroutineTypeFieldList "," DISubroutineTypeField
-	<< append($0.([]*astx.SpecializedMDField), $2.(*astx.SpecializedMDField)), nil >>
-;
+.
 
 DISubroutineTypeField
-	: FlagsField
+	= FlagsField
 	| "cc:" DwarfCC
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| "types:" MDField
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+.
 
 // ~~~ [ DIDerivedType ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -3182,25 +2856,20 @@ DISubroutineTypeField
 //  OPTIONAL(dwarfAddressSpace, MDUnsignedField, (UINT32_MAX, UINT32_MAX));
 
 DIDerivedType
-	: "!DIDerivedType" "(" DIDerivedTypeFields ")"
-	<< astx.NewDIDerivedType($2.([]*astx.SpecializedMDField)) >>
-;
+	= "!DIDerivedType" "(" DIDerivedTypeFields ")"
+.
 
 DIDerivedTypeFields
-	: empty
-	<< ([]*astx.SpecializedMDField)(nil), nil >>
-	| DIDerivedTypeFieldList
-;
+	= [ DIDerivedTypeFieldList ]
+.
 
 DIDerivedTypeFieldList
-	: DIDerivedTypeField
-	<< []*astx.SpecializedMDField{$0.(*astx.SpecializedMDField)}, nil >>
+	= DIDerivedTypeField
 	| DIDerivedTypeFieldList "," DIDerivedTypeField
-	<< append($0.([]*astx.SpecializedMDField), $2.(*astx.SpecializedMDField)), nil >>
-;
+.
 
 DIDerivedTypeField
-	: TagField
+	= TagField
 	| NameField
 	| ScopeField
 	| FileField
@@ -3211,10 +2880,8 @@ DIDerivedTypeField
 	| OffsetField
 	| FlagsField
 	| "extraData:" MDField
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| "dwarfAddressSpace:" IntLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+.
 
 // ~~~ [ DICompositeType ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -3240,25 +2907,20 @@ DIDerivedTypeField
 //  OPTIONAL(discriminator, MDField, );
 
 DICompositeType
-	: "!DICompositeType" "(" DICompositeTypeFields ")"
-	<< astx.NewDICompositeType($2.([]*astx.SpecializedMDField)) >>
-;
+	= "!DICompositeType" "(" DICompositeTypeFields ")"
+.
 
 DICompositeTypeFields
-	: empty
-	<< ([]*astx.SpecializedMDField)(nil), nil >>
-	| DICompositeTypeFieldList
-;
+	= [ DICompositeTypeFieldList ]
+.
 
 DICompositeTypeFieldList
-	: DICompositeTypeField
-	<< []*astx.SpecializedMDField{$0.(*astx.SpecializedMDField)}, nil >>
+	= DICompositeTypeField
 	| DICompositeTypeFieldList "," DICompositeTypeField
-	<< append($0.([]*astx.SpecializedMDField), $2.(*astx.SpecializedMDField)), nil >>
-;
+.
 
 DICompositeTypeField
-	: TagField
+	= TagField
 	| NameField
 	| ScopeField
 	| FileField
@@ -3269,17 +2931,12 @@ DICompositeTypeField
 	| OffsetField
 	| FlagsField
 	| "elements:" MDField
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| "runtimeLang:" DwarfLang
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| "vtableHolder:" MDField
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| TemplateParamsField
 	| "identifier:" StringLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| "discriminator:" MDField
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+.
 
 // ~~~ [ DISubrange ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -3294,29 +2951,22 @@ DICompositeTypeField
 //  OPTIONAL(lowerBound, MDSignedField, );
 
 DISubrange
-	: "!DISubrange" "(" DISubrangeFields ")"
-	<< astx.NewDISubrange($2.([]*astx.SpecializedMDField)) >>
-;
+	= "!DISubrange" "(" DISubrangeFields ")"
+.
 
 DISubrangeFields
-	: empty
-	<< ([]*astx.SpecializedMDField)(nil), nil >>
-	| DISubrangeFieldList
-;
+	= [ DISubrangeFieldList ]
+.
 
 DISubrangeFieldList
-	: DISubrangeField
-	<< []*astx.SpecializedMDField{$0.(*astx.SpecializedMDField)}, nil >>
+	= DISubrangeField
 	| DISubrangeFieldList "," DISubrangeField
-	<< append($0.([]*astx.SpecializedMDField), $2.(*astx.SpecializedMDField)), nil >>
-;
+.
 
 DISubrangeField
-	: "count:" IntOrMDField
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
+	= "count:" IntOrMDField
 	| "lowerBound:" IntLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+.
 
 // ~~~ [ DIEnumerator ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -3331,30 +2981,23 @@ DISubrangeField
 //  OPTIONAL(isUnsigned, MDBoolField, (false));
 
 DIEnumerator
-	: "!DIEnumerator" "(" DIEnumeratorFields ")"
-	<< astx.NewDIEnumerator($2.([]*astx.SpecializedMDField)) >>
-;
+	= "!DIEnumerator" "(" DIEnumeratorFields ")"
+.
 
 DIEnumeratorFields
-	: empty
-	<< ([]*astx.SpecializedMDField)(nil), nil >>
-	| DIEnumeratorFieldList
-;
+	= [ DIEnumeratorFieldList ]
+.
 
 DIEnumeratorFieldList
-	: DIEnumeratorField
-	<< []*astx.SpecializedMDField{$0.(*astx.SpecializedMDField)}, nil >>
+	= DIEnumeratorField
 	| DIEnumeratorFieldList "," DIEnumeratorField
-	<< append($0.([]*astx.SpecializedMDField), $2.(*astx.SpecializedMDField)), nil >>
-;
+.
 
 DIEnumeratorField
-	: NameField
+	= NameField
 	| "value:" IntLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| "isUnsigned:" BoolLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+.
 
 // ~~~ [ DITemplateTypeParameter ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -3368,27 +3011,22 @@ DIEnumeratorField
 //  REQUIRED(type, MDField, );
 
 DITemplateTypeParameter
-	: "!DITemplateTypeParameter" "(" DITemplateTypeParameterFields ")"
-	<< astx.NewDITemplateTypeParameter($2.([]*astx.SpecializedMDField)) >>
-;
+	= "!DITemplateTypeParameter" "(" DITemplateTypeParameterFields ")"
+.
 
 DITemplateTypeParameterFields
-	: empty
-	<< ([]*astx.SpecializedMDField)(nil), nil >>
-	| DITemplateTypeParameterFieldList
-;
+	= [ DITemplateTypeParameterFieldList ]
+.
 
 DITemplateTypeParameterFieldList
-	: DITemplateTypeParameterField
-	<< []*astx.SpecializedMDField{$0.(*astx.SpecializedMDField)}, nil >>
+	= DITemplateTypeParameterField
 	| DITemplateTypeParameterFieldList "," DITemplateTypeParameterField
-	<< append($0.([]*astx.SpecializedMDField), $2.(*astx.SpecializedMDField)), nil >>
-;
+.
 
 DITemplateTypeParameterField
-	: NameField
+	= NameField
 	| TypeField
-;
+.
 
 // ~~~ [ DITemplateValueParameter ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -3405,30 +3043,24 @@ DITemplateTypeParameterField
 //  REQUIRED(value, MDField, );
 
 DITemplateValueParameter
-	: "!DITemplateValueParameter" "(" DITemplateValueParameterFields ")"
-	<< astx.NewDITemplateValueParameter($2.([]*astx.SpecializedMDField)) >>
-;
+	= "!DITemplateValueParameter" "(" DITemplateValueParameterFields ")"
+.
 
 DITemplateValueParameterFields
-	: empty
-	<< ([]*astx.SpecializedMDField)(nil), nil >>
-	| DITemplateValueParameterFieldList
-;
+	= [ DITemplateValueParameterFieldList ]
+.
 
 DITemplateValueParameterFieldList
-	: DITemplateValueParameterField
-	<< []*astx.SpecializedMDField{$0.(*astx.SpecializedMDField)}, nil >>
+	= DITemplateValueParameterField
 	| DITemplateValueParameterFieldList "," DITemplateValueParameterField
-	<< append($0.([]*astx.SpecializedMDField), $2.(*astx.SpecializedMDField)), nil >>
-;
+.
 
 DITemplateValueParameterField
-	: TagField
+	= TagField
 	| NameField
 	| TypeField
 	| "value:" MDField
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+.
 
 // ~~~ [ DIModule ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -3444,33 +3076,25 @@ DITemplateValueParameterField
 //  OPTIONAL(isysroot, MDStringField, );
 
 DIModule
-	: "!DIModule" "(" DIModuleFields ")"
-	<< astx.NewDIModule($2.([]*astx.SpecializedMDField)) >>
-;
+	= "!DIModule" "(" DIModuleFields ")"
+.
 
 DIModuleFields
-	: empty
-	<< ([]*astx.SpecializedMDField)(nil), nil >>
-	| DIModuleFieldList
-;
+	= [ DIModuleFieldList ]
+.
 
 DIModuleFieldList
-	: DIModuleField
-	<< []*astx.SpecializedMDField{$0.(*astx.SpecializedMDField)}, nil >>
+	= DIModuleField
 	| DIModuleFieldList "," DIModuleField
-	<< append($0.([]*astx.SpecializedMDField), $2.(*astx.SpecializedMDField)), nil >>
-;
+.
 
 DIModuleField
-	: ScopeField
+	= ScopeField
 	| NameField
 	| "configMacros:" StringLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| "includePath:" StringLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| "isysroot:" StringLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+.
 
 // ~~~ [ DINamespace ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -3485,29 +3109,23 @@ DIModuleField
 //  OPTIONAL(exportSymbols, MDBoolField, );
 
 DINamespace
-	: "!DINamespace" "(" DINamespaceFields ")"
-	<< astx.NewDINamespace($2.([]*astx.SpecializedMDField)) >>
-;
+	= "!DINamespace" "(" DINamespaceFields ")"
+.
 
 DINamespaceFields
-	: empty
-	<< ([]*astx.SpecializedMDField)(nil), nil >>
-	| DINamespaceFieldList
-;
+	= [ DINamespaceFieldList ]
+.
 
 DINamespaceFieldList
-	: DINamespaceField
-	<< []*astx.SpecializedMDField{$0.(*astx.SpecializedMDField)}, nil >>
+	= DINamespaceField
 	| DINamespaceFieldList "," DINamespaceField
-	<< append($0.([]*astx.SpecializedMDField), $2.(*astx.SpecializedMDField)), nil >>
-;
+.
 
 DINamespaceField
-	: ScopeField
+	= ScopeField
 	| NameField
 	| "exportSymbols:" BoolLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+.
 
 // ~~~ [ DIGlobalVariable ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -3531,25 +3149,20 @@ DINamespaceField
 //  OPTIONAL(align, MDUnsignedField, (0, UINT32_MAX));
 
 DIGlobalVariable
-	: "!DIGlobalVariable" "(" DIGlobalVariableFields ")"
-	<< astx.NewDIGlobalVariable($2.([]*astx.SpecializedMDField)) >>
-;
+	= "!DIGlobalVariable" "(" DIGlobalVariableFields ")"
+.
 
 DIGlobalVariableFields
-	: empty
-	<< ([]*astx.SpecializedMDField)(nil), nil >>
-	| DIGlobalVariableFieldList
-;
+	= [ DIGlobalVariableFieldList ]
+.
 
 DIGlobalVariableFieldList
-	: DIGlobalVariableField
-	<< []*astx.SpecializedMDField{$0.(*astx.SpecializedMDField)}, nil >>
+	= DIGlobalVariableField
 	| DIGlobalVariableFieldList "," DIGlobalVariableField
-	<< append($0.([]*astx.SpecializedMDField), $2.(*astx.SpecializedMDField)), nil >>
-;
+.
 
 DIGlobalVariableField
-	: NameField
+	= NameField
 	| ScopeField
 	| LinkageNameField
 	| FileField
@@ -3559,7 +3172,7 @@ DIGlobalVariableField
 	| IsDefinitionField
 	| DeclarationField
 	| AlignField
-;
+.
 
 // ~~~ [ DISubprogram ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -3597,25 +3210,20 @@ DIGlobalVariableField
 //  OPTIONAL(thrownTypes, MDField, );
 
 DISubprogram
-	: "!DISubprogram" "(" DISubprogramFields ")"
-	<< astx.NewDISubprogram($2.([]*astx.SpecializedMDField)) >>
-;
+	= "!DISubprogram" "(" DISubprogramFields ")"
+.
 
 DISubprogramFields
-	: empty
-	<< ([]*astx.SpecializedMDField)(nil), nil >>
-	| DISubprogramFieldList
-;
+	= [ DISubprogramFieldList ]
+.
 
 DISubprogramFieldList
-	: DISubprogramField
-	<< []*astx.SpecializedMDField{$0.(*astx.SpecializedMDField)}, nil >>
+	= DISubprogramField
 	| DISubprogramFieldList "," DISubprogramField
-	<< append($0.([]*astx.SpecializedMDField), $2.(*astx.SpecializedMDField)), nil >>
-;
+.
 
 DISubprogramField
-	: NameField
+	= NameField
 	| ScopeField
 	| LinkageNameField
 	| FileField
@@ -3624,26 +3232,18 @@ DISubprogramField
 	| IsLocalField
 	| IsDefinitionField
 	| "scopeLine:" IntLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| "containingType:" MDField
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| "virtuality:" DwarfVirtuality
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| "virtualIndex:" IntLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| "thisAdjustment:" IntLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| FlagsField
 	| IsOptimizedField
 	| "unit:" MDField
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| TemplateParamsField
 	| DeclarationField
 	| "variables:" MDField
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| "thrownTypes:" MDField
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+.
 
 // ~~~ [ DILexicalBlock ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -3659,29 +3259,24 @@ DISubprogramField
 //  OPTIONAL(column, ColumnField, );
 
 DILexicalBlock
-	: "!DILexicalBlock" "(" DILexicalBlockFields ")"
-	<< astx.NewDILexicalBlock($2.([]*astx.SpecializedMDField)) >>
-;
+	= "!DILexicalBlock" "(" DILexicalBlockFields ")"
+.
 
 DILexicalBlockFields
-	: empty
-	<< ([]*astx.SpecializedMDField)(nil), nil >>
-	| DILexicalBlockFieldList
-;
+	= [ DILexicalBlockFieldList ]
+.
 
 DILexicalBlockFieldList
-	: DILexicalBlockField
-	<< []*astx.SpecializedMDField{$0.(*astx.SpecializedMDField)}, nil >>
+	= DILexicalBlockField
 	| DILexicalBlockFieldList "," DILexicalBlockField
-	<< append($0.([]*astx.SpecializedMDField), $2.(*astx.SpecializedMDField)), nil >>
-;
+.
 
 DILexicalBlockField
-	: ScopeField
+	= ScopeField
 	| FileField
 	| LineField
 	| ColumnField
-;
+.
 
 // ~~~ [ DILexicalBlockFile ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -3696,29 +3291,23 @@ DILexicalBlockField
 //  REQUIRED(discriminator, MDUnsignedField, (0, UINT32_MAX));
 
 DILexicalBlockFile
-	: "!DILexicalBlockFile" "(" DILexicalBlockFileFields ")"
-	<< astx.NewDILexicalBlockFile($2.([]*astx.SpecializedMDField)) >>
-;
+	= "!DILexicalBlockFile" "(" DILexicalBlockFileFields ")"
+.
 
 DILexicalBlockFileFields
-	: empty
-	<< ([]*astx.SpecializedMDField)(nil), nil >>
-	| DILexicalBlockFileFieldList
-;
+	= [ DILexicalBlockFileFieldList ]
+.
 
 DILexicalBlockFileFieldList
-	: DILexicalBlockFileField
-	<< []*astx.SpecializedMDField{$0.(*astx.SpecializedMDField)}, nil >>
+	= DILexicalBlockFileField
 	| DILexicalBlockFileFieldList "," DILexicalBlockFileField
-	<< append($0.([]*astx.SpecializedMDField), $2.(*astx.SpecializedMDField)), nil >>
-;
+.
 
 DILexicalBlockFileField
-	: ScopeField
+	= ScopeField
 	| FileField
 	| "discriminator:" IntLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+.
 
 // ~~~ [ DILocation ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -3734,30 +3323,24 @@ DILexicalBlockFileField
 //  OPTIONAL(inlinedAt, MDField, );
 
 DILocation
-	: "!DILocation" "(" DILocationFields ")"
-	<< astx.NewDILocation($2.([]*astx.SpecializedMDField)) >>
-;
+	= "!DILocation" "(" DILocationFields ")"
+.
 
 DILocationFields
-	: empty
-	<< ([]*astx.SpecializedMDField)(nil), nil >>
-	| DILocationFieldList
-;
+	= [ DILocationFieldList ]
+.
 
 DILocationFieldList
-	: DILocationField
-	<< []*astx.SpecializedMDField{$0.(*astx.SpecializedMDField)}, nil >>
+	= DILocationField
 	| DILocationFieldList "," DILocationField
-	<< append($0.([]*astx.SpecializedMDField), $2.(*astx.SpecializedMDField)), nil >>
-;
+.
 
 DILocationField
-	: LineField
+	= LineField
 	| ColumnField
 	| ScopeField
 	| "inlinedAt:" MDField
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+.
 
 // ~~~ [ DILocalVariable ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -3782,34 +3365,28 @@ DILocationField
 //  OPTIONAL(align, MDUnsignedField, (0, UINT32_MAX));
 
 DILocalVariable
-	: "!DILocalVariable" "(" DILocalVariableFields ")"
-	<< astx.NewDILocalVariable($2.([]*astx.SpecializedMDField)) >>
-;
+	= "!DILocalVariable" "(" DILocalVariableFields ")"
+.
 
 DILocalVariableFields
-	: empty
-	<< ([]*astx.SpecializedMDField)(nil), nil >>
-	| DILocalVariableFieldList
-;
+	= [ DILocalVariableFieldList ]
+.
 
 DILocalVariableFieldList
-	: DILocalVariableField
-	<< []*astx.SpecializedMDField{$0.(*astx.SpecializedMDField)}, nil >>
+	= DILocalVariableField
 	| DILocalVariableFieldList "," DILocalVariableField
-	<< append($0.([]*astx.SpecializedMDField), $2.(*astx.SpecializedMDField)), nil >>
-;
+.
 
 DILocalVariableField
-	: NameField
+	= NameField
 	| "arg:" IntLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| ScopeField
 	| FileField
 	| LineField
 	| TypeField
 	| FlagsField
 	| AlignField
-;
+.
 
 // ~~~ [ DIExpression ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -3820,28 +3397,22 @@ DILocalVariableField
 //   ::= !DIExpression(0, 7, -1)
 
 DIExpression
-	: "!DIExpression" "(" DIExpressionFields ")"
-	<< &metadata.DIExpression{Fields: $2.([]metadata.DIExpressionField)}, nil >>
-;
+	= "!DIExpression" "(" DIExpressionFields ")"
+.
 
 DIExpressionFields
-	: empty
-	<< ([]metadata.DIExpressionField)(nil), nil >>
-	| DIExpressionFieldList
-;
+	= [ DIExpressionFieldList ]
+.
 
 DIExpressionFieldList
-	: DIExpressionField
-	<< []metadata.DIExpressionField{$0.(metadata.DIExpressionField)}, nil >>
+	= DIExpressionField
 	| DIExpressionFieldList "," DIExpressionField
-	<< append($0.([]metadata.DIExpressionField), $2.(metadata.DIExpressionField)), nil >>
-;
+.
 
 DIExpressionField
-	: int_lit
-	<< metadata.NewMDIntFromString(astx.String($0)), nil >>
+	= int_lit
 	| DwarfOp
-;
+.
 
 // ~~~ [ DIGlobalVariableExpression ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -3853,29 +3424,22 @@ DIExpressionField
 //  REQUIRED(expr, MDField, );
 
 DIGlobalVariableExpression
-	: "!DIGlobalVariableExpression" "(" DIGlobalVariableExpressionFields ")"
-	<< astx.NewDIGlobalVariableExpression($2.([]*astx.SpecializedMDField)) >>
-;
+	= "!DIGlobalVariableExpression" "(" DIGlobalVariableExpressionFields ")"
+.
 
 DIGlobalVariableExpressionFields
-	: empty
-	<< ([]*astx.SpecializedMDField)(nil), nil >>
-	| DIGlobalVariableExpressionFieldList
-;
+	= [ DIGlobalVariableExpressionFieldList ]
+.
 
 DIGlobalVariableExpressionFieldList
-	: DIGlobalVariableExpressionField
-	<< []*astx.SpecializedMDField{$0.(*astx.SpecializedMDField)}, nil >>
+	= DIGlobalVariableExpressionField
 	| DIGlobalVariableExpressionFieldList "," DIGlobalVariableExpressionField
-	<< append($0.([]*astx.SpecializedMDField), $2.(*astx.SpecializedMDField)), nil >>
-;
+.
 
 DIGlobalVariableExpressionField
-	: "var:" MDField
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
+	= "var:" MDField
 	| "expr:" MDField
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+.
 
 // ~~~ [ DIObjCProperty ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -3895,35 +3459,27 @@ DIGlobalVariableExpressionField
 //  OPTIONAL(type, MDField, );
 
 DIObjCProperty
-	: "!DIObjCProperty" "(" DIObjCPropertyFields ")"
-	<< astx.NewDIObjCProperty($2.([]*astx.SpecializedMDField)) >>
-;
+	= "!DIObjCProperty" "(" DIObjCPropertyFields ")"
+.
 
 DIObjCPropertyFields
-	: empty
-	<< ([]*astx.SpecializedMDField)(nil), nil >>
-	| DIObjCPropertyFieldList
-;
+	= [ DIObjCPropertyFieldList ]
+.
 
 DIObjCPropertyFieldList
-	: DIObjCPropertyField
-	<< []*astx.SpecializedMDField{$0.(*astx.SpecializedMDField)}, nil >>
+	= DIObjCPropertyField
 	| DIObjCPropertyFieldList "," DIObjCPropertyField
-	<< append($0.([]*astx.SpecializedMDField), $2.(*astx.SpecializedMDField)), nil >>
-;
+.
 
 DIObjCPropertyField
-	: NameField
+	= NameField
 	| FileField
 	| LineField
 	| "setter:" StringLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| "getter:" StringLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| "attributes:" IntLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| TypeField
-;
+.
 
 // ~~~ [ DIImportedEntity ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -3942,32 +3498,26 @@ DIObjCPropertyField
 //  OPTIONAL(name, MDStringField, );
 
 DIImportedEntity
-	: "!DIImportedEntity" "(" DIImportedEntityFields ")"
-	<< astx.NewDIImportedEntity($2.([]*astx.SpecializedMDField)) >>
-;
+	= "!DIImportedEntity" "(" DIImportedEntityFields ")"
+.
 
 DIImportedEntityFields
-	: empty
-	<< ([]*astx.SpecializedMDField)(nil), nil >>
-	| DIImportedEntityFieldList
-;
+	= [ DIImportedEntityFieldList ]
+.
 
 DIImportedEntityFieldList
-	: DIImportedEntityField
-	<< []*astx.SpecializedMDField{$0.(*astx.SpecializedMDField)}, nil >>
+	= DIImportedEntityField
 	| DIImportedEntityFieldList "," DIImportedEntityField
-	<< append($0.([]*astx.SpecializedMDField), $2.(*astx.SpecializedMDField)), nil >>
-;
+.
 
 DIImportedEntityField
-	: TagField
+	= TagField
 	| ScopeField
 	| "entity:" MDField
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| FileField
 	| LineField
 	| NameField
-;
+.
 
 // ~~~ [ DIMacro ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -3983,30 +3533,24 @@ DIImportedEntityField
 //  OPTIONAL(value, MDStringField, );
 
 DIMacro
-	: "!DIMacro" "(" DIMacroFields ")"
-	<< astx.NewDIMacro($2.([]*astx.SpecializedMDField)) >>
-;
+	= "!DIMacro" "(" DIMacroFields ")"
+.
 
 DIMacroFields
-	: empty
-	<< ([]*astx.SpecializedMDField)(nil), nil >>
-	| DIMacroFieldList
-;
+	= [ DIMacroFieldList ]
+.
 
 DIMacroFieldList
-	: DIMacroField
-	<< []*astx.SpecializedMDField{$0.(*astx.SpecializedMDField)}, nil >>
+	= DIMacroField
 	| DIMacroFieldList "," DIMacroField
-	<< append($0.([]*astx.SpecializedMDField), $2.(*astx.SpecializedMDField)), nil >>
-;
+.
 
 DIMacroField
-	: TypeMacinfoField
+	= TypeMacinfoField
 	| LineField
 	| NameField
 	| "value:" StringLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+.
 
 // ~~~ [ DIMacroFile ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -4022,30 +3566,24 @@ DIMacroField
 //  OPTIONAL(nodes, MDField, );
 
 DIMacroFile
-	: "!DIMacroFile" "(" DIMacroFileFields ")"
-	<< astx.NewDIMacroFile($2.([]*astx.SpecializedMDField)) >>
-;
+	= "!DIMacroFile" "(" DIMacroFileFields ")"
+.
 
 DIMacroFileFields
-	: empty
-	<< ([]*astx.SpecializedMDField)(nil), nil >>
-	| DIMacroFileFieldList
-;
+	= [ DIMacroFileFieldList ]
+.
 
 DIMacroFileFieldList
-	: DIMacroFileField
-	<< []*astx.SpecializedMDField{$0.(*astx.SpecializedMDField)}, nil >>
+	= DIMacroFileField
 	| DIMacroFileFieldList "," DIMacroFileField
-	<< append($0.([]*astx.SpecializedMDField), $2.(*astx.SpecializedMDField)), nil >>
-;
+.
 
 DIMacroFileField
-	: TypeMacinfoField
+	= TypeMacinfoField
 	| LineField
 	| FileField
 	| "nodes:" MDField
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+.
 
 // ~~~ [ GenericDINode ] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -4058,324 +3596,255 @@ DIMacroFileField
 //  OPTIONAL(operands, MDFieldList, );
 
 GenericDINode
-	: "!GenericDINode" "(" GenericDINodeFields ")"
-	<< astx.NewGenericDINode($2.([]*astx.SpecializedMDField)) >>
-;
+	= "!GenericDINode" "(" GenericDINodeFields ")"
+.
 
 GenericDINodeFields
-	: empty
-	<< ([]*astx.SpecializedMDField)(nil), nil >>
-	| GenericDINodeFieldList
-;
+	= [ GenericDINodeFieldList ]
+.
 
 GenericDINodeFieldList
-	: GenericDINodeField
-	<< []*astx.SpecializedMDField{$0.(*astx.SpecializedMDField)}, nil >>
+	= GenericDINodeField
 	| GenericDINodeFieldList "," GenericDINodeField
-	<< append($0.([]*astx.SpecializedMDField), $2.(*astx.SpecializedMDField)), nil >>
-;
+.
 
 GenericDINodeField
-	: TagField
+	= TagField
 	| "header:" StringLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
 	| "operands:" MDFields
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+.
 
 // ### [ Helper productions ] ##################################################
 
 FileField
-	: "file:" MDField
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+	= "file:" MDField
+.
 
 IsOptimizedField
-	: "isOptimized:" BoolLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+	= "isOptimized:" BoolLit
+.
 
 TagField
-	: "tag:" DwarfTag
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+	= "tag:" DwarfTag
+.
 
 NameField
-	: "name:" StringLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+	= "name:" StringLit
+.
 
 SizeField
-	: "size:" IntLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+	= "size:" IntLit
+.
 
 AlignField
-	: "align:" IntLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+	= "align:" IntLit
+.
 
 FlagsField
-	: "flags:" DIFlagList
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+	= "flags:" DIFlagList
+.
 
 LineField
-	: "line:" IntLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+	= "line:" IntLit
+.
 
 ScopeField
-	: "scope:" MDField
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+	= "scope:" MDField
+.
 
 BaseTypeField
-	: "baseType:" MDField
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+	= "baseType:" MDField
+.
 
 OffsetField
-	: "offset:" IntLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+	= "offset:" IntLit
+.
 
 TemplateParamsField
-	: "templateParams:" MDField
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+	= "templateParams:" MDField
+.
 
 // ref: ParseMDField(MDSignedOrMDField &)
 
 IntOrMDField
-	: int_lit
-	<< metadata.NewMDIntFromString(astx.String($0)), nil >>
+	= int_lit
 	| MDField
-;
+.
 
 TypeField
-	: "type:" MDField
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+	= "type:" MDField
+.
 
 LinkageNameField
-	: "linkageName:" StringLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+	= "linkageName:" StringLit
+.
 
 IsLocalField
-	: "isLocal:" BoolLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+	= "isLocal:" BoolLit
+.
 
 IsDefinitionField
-	: "isDefinition:" BoolLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+	= "isDefinition:" BoolLit
+.
 
 DeclarationField
-	: "declaration:" MDField
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+	= "declaration:" MDField
+.
 
 ColumnField
-	: "column:" IntLit
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+	= "column:" IntLit
+.
 
 TypeMacinfoField
-	: "type:" DwarfMacinfo
-	<< &astx.SpecializedMDField{Key: astx.String($0), Value: $1}, nil >>
-;
+	= "type:" DwarfMacinfo
+.
 
 ChecksumKind
 	// CSK_foo
-	: checksum_kind
-	<< astx.NewChecksumKind($0) >>
-;
+	= checksum_kind
+.
 
 // ref: ParseMDField(DIFlagField &)
 //
 //  ::= uint32
 //  ::= DIFlagVector
-//  ::= DIFlagVector '|' DIFlagFwdDecl '|' uint32 '|' DIFlagPublic
+//  ::= DIFlagVector "|" DIFlagFwdDecl "|" uint32 "|" DIFlagPublic
 
 DIFlagList
-	: DIFlag
-	<< []metadata.DIFlag{$0.(metadata.DIFlag)}, nil >>
+	= DIFlag
 	| DIFlagList "|" DIFlag
-	<< append($0.([]metadata.DIFlag), $2.(metadata.DIFlag)), nil >>
-;
+.
 
 DIFlag
-	: IntLit
-	<< metadata.DIFlag($0.(int64)), nil >>
+	= IntLit
 	// DIFlagFoo
 	| di_flag
-	<< astx.NewDIFlag($0) >>
-;
+.
 
 // ref: ParseMDField(DwarfAttEncodingField &)
 
 DwarfAttEncoding
-	: IntLit
-	<< metadata.DwarfAttEncoding($0.(int64)), nil >>
+	= IntLit
 	// DW_ATE_foo
 	| dwarf_att_encoding
-	<< astx.NewDwarfAttEncoding($0) >>
-;
+.
 
 // ref: ParseMDField(DwarfCCField &Result)
 
 DwarfCC
-	: IntLit
-	<< metadata.DwarfCC($0.(int64)), nil >>
+	= IntLit
 	// DW_CC_foo
 	| dwarf_cc
-	<< astx.NewDwarfCC($0) >>
-;
+.
 
 // ref: ParseMDField(DwarfLangField &)
 
 DwarfLang
-	: IntLit
-	<< metadata.DwarfLang($0.(int64)), nil >>
+	= IntLit
 	// DW_LANG_foo
 	| dwarf_lang
-	<< astx.NewDwarfLang($0) >>
-;
+.
 
 // ref: ParseMDField(DwarfMacinfoTypeField &)
 
 DwarfMacinfo
-	: IntLit
-	<< metadata.DwarfMacinfo($0.(int64)), nil >>
+	= IntLit
 	// DW_MACINFO_foo
 	| dwarf_macinfo
-	<< astx.NewDwarfMacinfo($0) >>
-;
+.
 
 DwarfOp
 	// DW_OP_foo
-	: dwarf_op
-	<< astx.NewDwarfOp($0) >>
-;
+	= dwarf_op
+.
 
 // ref: ParseMDField(DwarfTagField &)
 
 DwarfTag
-	: IntLit
-	<< metadata.DwarfTag($0.(int64)), nil >>
+	= IntLit
 	// DW_TAG_foo
 	| dwarf_tag
-	<< astx.NewDwarfTag($0) >>
-;
+.
 
 // ref: ParseMDField(DwarfVirtualityField &)
 
 DwarfVirtuality
-	: IntLit
-	<< metadata.DwarfVirtuality($0.(int64)), nil >>
+	= IntLit
 	// DW_VIRTUALITY_foo
 	| dwarf_virtuality
-	<< astx.NewDwarfVirtuality($0) >>
-;
+.
 
 EmissionKind
-	: IntLit             << metadata.EmissionKind($0.(int64)), nil >>
-	| "FullDebug"        << metadata.EmissionKindFullDebug, nil >>
-	| "LineTablesOnly"   << metadata.EmissionKindLineTablesOnly, nil >>
-	| "NoDebug"          << metadata.EmissionKindNoDebug, nil >>
-;
+	= IntLit
+	| "FullDebug"
+	| "LineTablesOnly"
+	| "NoDebug"
+.
 
 // ### [ Helper productions ] ##################################################
 
 TypeValues
-	: empty
-	<< ([]value.Value)(nil), nil >>
-	| TypeValueList
-;
+	= [ TypeValueList ]
+.
 
 TypeValueList
-	: TypeValue
-	<< []value.Value{$0.(*ast.TypeValue)}, nil >>
+	= TypeValue
 	| TypeValueList TypeValue
-	<< append($0.([]value.Value), $1.(*ast.TypeValue)), nil >>
-;
+.
 
 CommaSepTypeValueList
-	: TypeValue
-	<< []value.Value{$0.(*ast.TypeValue)}, nil >>
+	= TypeValue
 	| CommaSepTypeValueList "," TypeValue
-	<< append($0.([]value.Value), $2.(*ast.TypeValue)), nil >>
-;
+.
 
 TypeValue
-	: Type Value
-	<< astx.TypeValue($0, $1), nil >>
-;
+	= Type Value
+.
 
 TypeConsts
-	: empty
-	<< ([]ir.Constant)(nil), nil >>
-	| TypeConstList
-;
+	= [ TypeConstList ]
+.
 
 TypeConstList
-	: TypeConst
-	<< []ir.Constant{$0.(*ast.TypeConst)}, nil >>
+	= TypeConst
 	| TypeConstList "," TypeConst
-	<< append($0.([]ir.Constant), $2.(*ast.TypeConst)), nil >>
-;
+.
 
 TypeConst
-	: Type Constant
-	<< &ast.TypeConst{Typ: $0.(types.Type), Const: $1.(ir.Constant)}, nil >>
-;
+	= Type Constant
+.
 
 // ref: ParseOptionalAlignment
 //
 //   ::= empty
-//   ::= 'align' 4
+//   ::= "align" 4
 
 Alignment
-	: "align" int_lit
-	<< &ir.Alignment{Align: astx.Int($1)}, nil >>
-;
+	= "align" int_lit
+.
 
 // ref: parseAllocSizeArguments
 
 AllocSize
-	: "allocsize" "(" int_lit ")"
-	<< &ir.AllocSize{BaseSize: astx.Int($2)}, nil >>
+	= "allocsize" "(" int_lit ")"
 	| "allocsize" "(" int_lit "," int_lit ")"
-	<< &ir.AllocSize{BaseSize: astx.Int($2), N: astx.Int($4)}, nil >>
-;
+.
 
 // ref: ParseParameterList
 //
-//    ::= '(' ')'
-//    ::= '(' Arg (',' Arg)* ')'
+//    ::= "(" ")"
+//    ::= "(" Arg ("," Arg)* ")"
 //  Arg
 //    ::= Type OptionalAttributes Value OptionalAttributes
 
 Args
-	: empty
-	<< ([]ir.Argument)(nil), nil >>
-	| "..."
-	<< ([]ir.Argument)(nil), nil >>
-	| ArgList
-	<< $0, nil >>
-	| ArgList "," "..."
-	<< $0, nil >>
-;
+	= [ ( "..." | ArgList | ArgList "," "..." ) ]
+.
 
 ArgList
-	: Arg
-	<< []ir.Argument{$0.(ir.Argument)}, nil >>
+	= Arg
 	| ArgList "," Arg
-	<< append($0.([]ir.Argument), $2.(ir.Argument)), nil >>
-;
+.
 
 // ref: ParseMetadataAsValue
 //
@@ -4387,656 +3856,578 @@ ArgList
 //  ::= metadata !"string"
 
 Arg
-	: ConcreteType ParamAttrs Value
-	<< &ir.Arg{X: astx.TypeValue($0, $2), ParamAttrs: $1.([]ir.ParamAttribute)}, nil >>
+	= ConcreteType ParamAttrs Value
 	| MetadataType Metadata
-	<< &ast.MetadataValue{Metadata: $1.(metadata.Metadata)}, nil >>
-;
+.
 
 // ref: ParseOrdering
 //
 //   ::= AtomicOrdering
 
 AtomicOrdering
-	: "acq_rel"     << ir.AtomicOrderingAcqRel, nil >>
-	| "acquire"     << ir.AtomicOrderingAcquire, nil >>
-	| "monotonic"   << ir.AtomicOrderingMonotonic, nil >>
-	| "release"     << ir.AtomicOrderingRelease, nil >>
-	| "seq_cst"     << ir.AtomicOrderingSeqCst, nil >>
-	| "unordered"   << ir.AtomicOrderingUnordered, nil >>
-;
+	= "acq_rel"
+	| "acquire"
+	| "monotonic"
+	| "release"
+	| "seq_cst"
+	| "unordered"
+.
 
 // ref: ParseOptionalCallingConv
 //
 //   ::= empty
-//   ::= 'ccc'
-//   ::= 'fastcc'
-//   ::= 'intel_ocl_bicc'
-//   ::= 'coldcc'
-//   ::= 'x86_stdcallcc'
-//   ::= 'x86_fastcallcc'
-//   ::= 'x86_thiscallcc'
-//   ::= 'x86_vectorcallcc'
-//   ::= 'arm_apcscc'
-//   ::= 'arm_aapcscc'
-//   ::= 'arm_aapcs_vfpcc'
-//   ::= 'msp430_intrcc'
-//   ::= 'avr_intrcc'
-//   ::= 'avr_signalcc'
-//   ::= 'ptx_kernel'
-//   ::= 'ptx_device'
-//   ::= 'spir_func'
-//   ::= 'spir_kernel'
-//   ::= 'x86_64_sysvcc'
-//   ::= 'win64cc'
-//   ::= 'webkit_jscc'
-//   ::= 'anyregcc'
-//   ::= 'preserve_mostcc'
-//   ::= 'preserve_allcc'
-//   ::= 'ghccc'
-//   ::= 'swiftcc'
-//   ::= 'x86_intrcc'
-//   ::= 'hhvmcc'
-//   ::= 'hhvm_ccc'
-//   ::= 'cxx_fast_tlscc'
-//   ::= 'amdgpu_vs'
-//   ::= 'amdgpu_ls'
-//   ::= 'amdgpu_hs'
-//   ::= 'amdgpu_es'
-//   ::= 'amdgpu_gs'
-//   ::= 'amdgpu_ps'
-//   ::= 'amdgpu_cs'
-//   ::= 'amdgpu_kernel'
-//   ::= 'cc' UINT
+//   ::= "ccc"
+//   ::= "fastcc"
+//   ::= "intel_ocl_bicc"
+//   ::= "coldcc"
+//   ::= "x86_stdcallcc"
+//   ::= "x86_fastcallcc"
+//   ::= "x86_thiscallcc"
+//   ::= "x86_vectorcallcc"
+//   ::= "arm_apcscc"
+//   ::= "arm_aapcscc"
+//   ::= "arm_aapcs_vfpcc"
+//   ::= "msp430_intrcc"
+//   ::= "avr_intrcc"
+//   ::= "avr_signalcc"
+//   ::= "ptx_kernel"
+//   ::= "ptx_device"
+//   ::= "spir_func"
+//   ::= "spir_kernel"
+//   ::= "x86_64_sysvcc"
+//   ::= "win64cc"
+//   ::= "webkit_jscc"
+//   ::= "anyregcc"
+//   ::= "preserve_mostcc"
+//   ::= "preserve_allcc"
+//   ::= "ghccc"
+//   ::= "swiftcc"
+//   ::= "x86_intrcc"
+//   ::= "hhvmcc"
+//   ::= "hhvm_ccc"
+//   ::= "cxx_fast_tlscc"
+//   ::= "amdgpu_vs"
+//   ::= "amdgpu_ls"
+//   ::= "amdgpu_hs"
+//   ::= "amdgpu_es"
+//   ::= "amdgpu_gs"
+//   ::= "amdgpu_ps"
+//   ::= "amdgpu_cs"
+//   ::= "amdgpu_kernel"
+//   ::= "cc" UINT
 
 OptCallingConv
-	: empty         << ir.CallingConvNone, nil >>
-	| CallingConv
-;
+	= [ CallingConv ]
+.
 
 CallingConv
-	: "amdgpu_cs"          << ir.CallingConvAmdGPUCS, nil >>
-	| "amdgpu_es"          << ir.CallingConvAmdGPUES, nil >>
-	| "amdgpu_gs"          << ir.CallingConvAmdGPUGS, nil >>
-	| "amdgpu_hs"          << ir.CallingConvAmdGPUHS, nil >>
-	| "amdgpu_kernel"      << ir.CallingConvAmdGPUKernel, nil >>
-	| "amdgpu_ls"          << ir.CallingConvAmdGPULS, nil >>
-	| "amdgpu_ps"          << ir.CallingConvAmdGPUPS, nil >>
-	| "amdgpu_vs"          << ir.CallingConvAmdGPUVS, nil >>
-	| "anyregcc"           << ir.CallingConvAnyReg, nil >>
-	| "arm_aapcs_vfpcc"    << ir.CallingConvARMAAPCSVFP, nil >>
-	| "arm_aapcscc"        << ir.CallingConvARMAAPCS, nil >>
-	| "arm_apcscc"         << ir.CallingConvARMAPCS, nil >>
-	| "avr_intrcc"         << ir.CallingConvAVRIntr, nil >>
-	| "avr_signalcc"       << ir.CallingConvAVRSignal, nil >>
-	| "ccc"                << ir.CallingConvC, nil >>
-	| "coldcc"             << ir.CallingConvCold, nil >>
-	| "cxx_fast_tlscc"     << ir.CallingConvCXXFastTLS, nil >>
-	| "fastcc"             << ir.CallingConvFast, nil >>
-	| "ghccc"              << ir.CallingConvGHC, nil >>
-	| "hhvm_ccc"           << ir.CallingConvHHVMC, nil >>
-	| "hhvmcc"             << ir.CallingConvHHVM, nil >>
-	| "intel_ocl_bicc"     << ir.CallingConvIntelOCLBI, nil >>
-	| "msp430_intrcc"      << ir.CallingConvMSP430Intr, nil >>
-	| "preserve_allcc"     << ir.CallingConvPreserveAll, nil >>
-	| "preserve_mostcc"    << ir.CallingConvPreserveMost, nil >>
-	| "ptx_device"         << ir.CallingConvPTXDevice, nil >>
-	| "ptx_kernel"         << ir.CallingConvPTXKernel, nil >>
-	| "spir_func"          << ir.CallingConvSPIRFunc, nil >>
-	| "spir_kernel"        << ir.CallingConvSPIRKernel, nil >>
-	| "swiftcc"            << ir.CallingConvSwift, nil >>
-	| "webkit_jscc"        << ir.CallingConvWebKitJS, nil >>
-	| "win64cc"            << ir.CallingConvWin64, nil >>
-	| "x86_64_sysvcc"      << ir.CallingConvX86_64SysV, nil >>
-	| "x86_fastcallcc"     << ir.CallingConvX86FastCall, nil >>
-	| "x86_intrcc"         << ir.CallingConvX86Intr, nil >>
-	| "x86_regcallcc"      << ir.CallingConvX86RegCall, nil >>
-	| "x86_stdcallcc"      << ir.CallingConvX86StdCall, nil >>
-	| "x86_thiscallcc"     << ir.CallingConvX86ThisCall, nil >>
-	| "x86_vectorcallcc"   << ir.CallingConvX86VectorCall, nil >>
-	| "cc" int_lit         << astx.NewCallingConv($1) >>
-;
+	= "amdgpu_cs"
+	| "amdgpu_es"
+	| "amdgpu_gs"
+	| "amdgpu_hs"
+	| "amdgpu_kernel"
+	| "amdgpu_ls"
+	| "amdgpu_ps"
+	| "amdgpu_vs"
+	| "anyregcc"
+	| "arm_aapcs_vfpcc"
+	| "arm_aapcscc"
+	| "arm_apcscc"
+	| "avr_intrcc"
+	| "avr_signalcc"
+	| "ccc"
+	| "coldcc"
+	| "cxx_fast_tlscc"
+	| "fastcc"
+	| "ghccc"
+	| "hhvm_ccc"
+	| "hhvmcc"
+	| "intel_ocl_bicc"
+	| "msp430_intrcc"
+	| "preserve_allcc"
+	| "preserve_mostcc"
+	| "ptx_device"
+	| "ptx_kernel"
+	| "spir_func"
+	| "spir_kernel"
+	| "swiftcc"
+	| "webkit_jscc"
+	| "win64cc"
+	| "x86_64_sysvcc"
+	| "x86_fastcallcc"
+	| "x86_intrcc"
+	| "x86_regcallcc"
+	| "x86_stdcallcc"
+	| "x86_thiscallcc"
+	| "x86_vectorcallcc"
+	| "cc" int_lit
+.
 
 // ref: parseOptionalComdat
 
 OptComdat
-	: empty
-	<< (*ir.Comdat)(nil), nil >>
-	| Comdat
-;
+	= [ Comdat ]
+.
 
 Comdat
-	: "comdat"
-	<< &ir.Comdat{}, nil >>
+	= "comdat"
 	| "comdat" "(" ComdatName ")"
-	<< &ir.Comdat{Name: astx.ComdatName($2)}, nil >>
-;
+.
 
 Dereferenceable
-	: "dereferenceable" "(" int_lit ")"
-	<< &ir.Dereferenceable{N: astx.Int($2)}, nil >>
+	= "dereferenceable" "(" int_lit ")"
 	| "dereferenceable_or_null" "(" int_lit ")"
-	<< &ir.Dereferenceable{N: astx.Int($2), Null: true}, nil >>
-;
+.
 
 // https://llvm.org/docs/LangRef.html#dll-storage-classes
 
 // ref: ParseOptionalDLLStorageClass
 //
 //   ::= empty
-//   ::= 'dllimport'
-//   ::= 'dllexport'
+//   ::= "dllimport"
+//   ::= "dllexport"
 
 OptDLLStorageClass
-	: empty             << ir.DLLStorageClassNone, nil >>
-	| DLLStorageClass
-;
+	= [ DLLStorageClass ]
+.
 
 DLLStorageClass
-	: "dllexport"   << ir.DLLStorageClassDLLExport, nil >>
-	| "dllimport"   << ir.DLLStorageClassDLLImport, nil >>
-;
+	= "dllexport"
+	| "dllimport"
+.
 
 OptExact
-	: empty     << false, nil >>
-	| "exact"   << true, nil >>
-;
+	= [ "exact" ]
+.
 
 // ref: ParseExceptionArgs
 
 ExceptionArgs
-	: empty
-	<< ([]ir.Argument)(nil), nil >>
-	| ExceptionArgList
-;
+	= [ ExceptionArgList ]
+.
 
 ExceptionArgList
-	: ExceptionArg
-	<< []ir.Argument{$0.(ir.Argument)}, nil >>
+	= ExceptionArg
 	| ExceptionArgList "," ExceptionArg
-	<< append($0.([]ir.Argument), $2.(ir.Argument)), nil >>
-;
+.
 
 ExceptionArg
-	: ConcreteType Value
-	<< astx.TypeValue($0, $1), nil >>
+	= ConcreteType Value
 	| MetadataType Metadata
-	<< &ast.MetadataValue{Metadata: $1.(metadata.Metadata)}, nil >>
-;
+.
 
 ExceptionScope
-	: NoneConst
+	= NoneConst
 	| LocalIdent
-;
+.
 
 // ref: EatFastMathFlagsIfPresent
 
 FastMathFlags
-	: empty
-	<< ([]ir.FastMathFlag)(nil), nil >>
-	| FastMathFlagList
-;
+	= [ FastMathFlagList ]
+.
 
 FastMathFlagList
-	: FastMathFlag
-	<< []ir.FastMathFlag{$0.(ir.FastMathFlag)}, nil >>
+	= FastMathFlag
 	| FastMathFlagList FastMathFlag
-	<< append($0.([]ir.FastMathFlag), $1.(ir.FastMathFlag)), nil >>
-;
+.
 
 FastMathFlag
-	: "afn"        << ir.FastMathFlagAFn, nil >>
-	| "arcp"       << ir.FastMathFlagARcp, nil >>
-	| "contract"   << ir.FastMathFlagContract, nil >>
-	| "fast"       << ir.FastMathFlagFast, nil >>
-	| "ninf"       << ir.FastMathFlagNInf, nil >>
-	| "nnan"       << ir.FastMathFlagNNaN, nil >>
-	| "nsz"        << ir.FastMathFlagNSZ, nil >>
-	| "reassoc"    << ir.FastMathFlagReassoc, nil >>
-;
+	= "afn"
+	| "arcp"
+	| "contract"
+	| "fast"
+	| "ninf"
+	| "nnan"
+	| "nsz"
+	| "reassoc"
+.
 
 // ref: ParseCmpPredicate
 
 FPred
-	: "false"   << ir.FPredFalse, nil >>
-	| "oeq"     << ir.FPredOEQ, nil >>
-	| "oge"     << ir.FPredOGE, nil >>
-	| "ogt"     << ir.FPredOGT, nil >>
-	| "ole"     << ir.FPredOLE, nil >>
-	| "olt"     << ir.FPredOLT, nil >>
-	| "one"     << ir.FPredONE, nil >>
-	| "ord"     << ir.FPredORD, nil >>
-	| "true"    << ir.FPredTrue, nil >>
-	| "ueq"     << ir.FPredUEQ, nil >>
-	| "uge"     << ir.FPredUGE, nil >>
-	| "ugt"     << ir.FPredUGT, nil >>
-	| "ule"     << ir.FPredULE, nil >>
-	| "ult"     << ir.FPredULT, nil >>
-	| "une"     << ir.FPredUNE, nil >>
-	| "uno"     << ir.FPredUNO, nil >>
-;
+	= "false"
+	| "oeq"
+	| "oge"
+	| "ogt"
+	| "ole"
+	| "olt"
+	| "one"
+	| "ord"
+	| "true"
+	| "ueq"
+	| "uge"
+	| "ugt"
+	| "ule"
+	| "ult"
+	| "une"
+	| "uno"
+.
 
 // ___ [ Function Attribute ] __________________________________________________
 
 // ref: ParseFnAttributeValuePairs
 //
-//   ::= <attr> | <attr> '=' <value>
+//   ::= <attr> | <attr> "=" <value>
 
 FuncAttrs
-	: empty
-	<< ([]ir.FuncAttribute)(nil), nil >>
-	| FuncAttrList
-;
+	= [ FuncAttrList ]
+.
 
 FuncAttrList
-	: FuncAttr
-	<< []ir.FuncAttribute{$0.(ir.FuncAttribute)}, nil >>
+	= FuncAttr
 	| FuncAttrList FuncAttr
-	<< append($0.([]ir.FuncAttribute), $1.(ir.FuncAttribute)), nil >>
-;
+.
 
 FuncAttr
 	// not used in attribute groups.
-	: AttrGroupID
+	= AttrGroupID
 	// used in attribute groups.
-	| "align" "=" int_lit               << &ir.Alignment{Align: astx.Int($2)}, nil >>
-	| "alignstack" "=" int_lit          << &ir.StackAlignment{Align: astx.Int($2)}, nil >>
+	| "align" "=" int_lit
+	| "alignstack" "=" int_lit
 	// used in functions.
 	| Alignment
 	| AllocSize
 	| StackAlignment
-	| StringLit                         << &ir.FuncAttrString{Value: $0.(string)}, nil >>
-	| StringLit "=" StringLit           << &ir.FuncAttrPair{Key: $0.(string), Value: $2.(string)}, nil >>
-	| "alwaysinline"                    << ir.FuncAttrAlwaysInline, nil >>
-	| "argmemonly"                      << ir.FuncAttrArgMemOnly, nil >>
-	| "builtin"                         << ir.FuncAttrBuiltin, nil >>
-	| "cold"                            << ir.FuncAttrCold, nil >>
-	| "convergent"                      << ir.FuncAttrConvergent, nil >>
-	| "inaccessiblemem_or_argmemonly"   << ir.FuncAttrInaccessibleMemOrArgMemOnly, nil >>
-	| "inaccessiblememonly"             << ir.FuncAttrInaccessibleMemOnly, nil >>
-	| "inlinehint"                      << ir.FuncAttrInlineHint, nil >>
-	| "jumptable"                       << ir.FuncAttrJumpTable, nil >>
-	| "minsize"                         << ir.FuncAttrMinSize, nil >>
-	| "naked"                           << ir.FuncAttrNaked, nil >>
-	| "nobuiltin"                       << ir.FuncAttrNoBuiltin, nil >>
-	| "noduplicate"                     << ir.FuncAttrNoDuplicate, nil >>
-	| "noimplicitfloat"                 << ir.FuncAttrNoImplicitFloat, nil >>
-	| "noinline"                        << ir.FuncAttrNoInline, nil >>
-	| "nonlazybind"                     << ir.FuncAttrNonLazyBind, nil >>
-	| "norecurse"                       << ir.FuncAttrNoRecurse, nil >>
-	| "noredzone"                       << ir.FuncAttrNoRedZone, nil >>
-	| "noreturn"                        << ir.FuncAttrNoReturn, nil >>
-	| "nounwind"                        << ir.FuncAttrNoUnwind, nil >>
-	| "optnone"                         << ir.FuncAttrOptNone, nil >>
-	| "optsize"                         << ir.FuncAttrOptSize, nil >>
-	| "readnone"                        << ir.FuncAttrReadNone, nil >>
-	| "readonly"                        << ir.FuncAttrReadOnly, nil >>
-	| "returns_twice"                   << ir.FuncAttrReturnsTwice, nil >>
-	| "safestack"                       << ir.FuncAttrSafeStack, nil >>
-	| "sanitize_address"                << ir.FuncAttrSanitizeAddress, nil >>
-	| "sanitize_hwaddress"              << ir.FuncAttrSanitizeHWAddress, nil >>
-	| "sanitize_memory"                 << ir.FuncAttrSanitizeMemory, nil >>
-	| "sanitize_thread"                 << ir.FuncAttrSanitizeThread, nil >>
-	| "speculatable"                    << ir.FuncAttrSpeculatable, nil >>
-	| "ssp"                             << ir.FuncAttrSSP, nil >>
-	| "sspreq"                          << ir.FuncAttrSSPReq, nil >>
-	| "sspstrong"                       << ir.FuncAttrSSPStrong, nil >>
-	| "strictfp"                        << ir.FuncAttrStrictFP, nil >>
-	| "uwtable"                         << ir.FuncAttrUwtable, nil >>
-	| "writeonly"                       << ir.FuncAttrWriteOnly, nil >>
-;
+	| StringLit
+	| StringLit "=" StringLit
+	| "alwaysinline"
+	| "argmemonly"
+	| "builtin"
+	| "cold"
+	| "convergent"
+	| "inaccessiblemem_or_argmemonly"
+	| "inaccessiblememonly"
+	| "inlinehint"
+	| "jumptable"
+	| "minsize"
+	| "naked"
+	| "nobuiltin"
+	| "noduplicate"
+	| "noimplicitfloat"
+	| "noinline"
+	| "nonlazybind"
+	| "norecurse"
+	| "noredzone"
+	| "noreturn"
+	| "nounwind"
+	| "optnone"
+	| "optsize"
+	| "readnone"
+	| "readonly"
+	| "returns_twice"
+	| "safestack"
+	| "sanitize_address"
+	| "sanitize_hwaddress"
+	| "sanitize_memory"
+	| "sanitize_thread"
+	| "speculatable"
+	| "ssp"
+	| "sspreq"
+	| "sspstrong"
+	| "strictfp"
+	| "uwtable"
+	| "writeonly"
+.
 
 OptInBounds
-	: empty        << false, nil >>
-	| "inbounds"   << true, nil >>
-;
+	= [ "inbounds" ]
+.
 
 // ref: ParseIndexList
 //
-//    ::=  (',' uint32)+
+//    ::=  ("," uint32)+
 
 Indices
-	: empty
-	<< ([]int64)(nil), nil >>
-	| "," IndexList
-	<< $1, nil >>
-;
+	= [ "," IndexList ]
+.
 
 IndexList
-	: Index
-	<< []int64{$0.(int64)}, nil >>
+	= Index
 	| IndexList "," Index
-	<< append($0.([]int64), $2.(int64)), nil >>
-;
+.
 
 Index
-	: int_lit
-	<< astx.Int($0), nil >>
-;
+	= int_lit
+.
 
 // ref: ParseCmpPredicate
 
 IPred
-	: "eq"    << ir.IPredEQ, nil >>
-	| "ne"    << ir.IPredNE, nil >>
-	| "sge"   << ir.IPredSGE, nil >>
-	| "sgt"   << ir.IPredSGT, nil >>
-	| "sle"   << ir.IPredSLE, nil >>
-	| "slt"   << ir.IPredSLT, nil >>
-	| "uge"   << ir.IPredUGE, nil >>
-	| "ugt"   << ir.IPredUGT, nil >>
-	| "ule"   << ir.IPredULE, nil >>
-	| "ult"   << ir.IPredULT, nil >>
-;
+	= "eq"
+	| "ne"
+	| "sge"
+	| "sgt"
+	| "sle"
+	| "slt"
+	| "uge"
+	| "ugt"
+	| "ule"
+	| "ult"
+.
 
 // https://llvm.org/docs/LangRef.html#linkage-types
 
 // ref: ParseOptionalLinkage
 //
 //   ::= empty
-//   ::= 'private'
-//   ::= 'internal'
-//   ::= 'weak'
-//   ::= 'weak_odr'
-//   ::= 'linkonce'
-//   ::= 'linkonce_odr'
-//   ::= 'available_externally'
-//   ::= 'appending'
-//   ::= 'common'
-//   ::= 'extern_weak'
-//   ::= 'external'
+//   ::= "private"
+//   ::= "internal"
+//   ::= "weak"
+//   ::= "weak_odr"
+//   ::= "linkonce"
+//   ::= "linkonce_odr"
+//   ::= "available_externally"
+//   ::= "appending"
+//   ::= "common"
+//   ::= "extern_weak"
+//   ::= "external"
 
 OptLinkage
-	: empty     << ir.LinkageNone, nil >>
-	| Linkage
-;
+	= [ Linkage ]
+.
 
 Linkage
-	: "appending"              << ir.LinkageAppending, nil >>
-	| "available_externally"   << ir.LinkageAvailableExternally, nil >>
-	| "common"                 << ir.LinkageCommon, nil >>
-	| "internal"               << ir.LinkageInternal, nil >>
-	| "linkonce"               << ir.LinkageLinkOnce, nil >>
-	| "linkonce_odr"           << ir.LinkageLinkOnceODR, nil >>
-	| "private"                << ir.LinkagePrivate, nil >>
-	| "weak"                   << ir.LinkageWeak, nil >>
-	| "weak_odr"               << ir.LinkageWeakODR, nil >>
-;
+	= "appending"
+	| "available_externally"
+	| "common"
+	| "internal"
+	| "linkonce"
+	| "linkonce_odr"
+	| "private"
+	| "weak"
+	| "weak_odr"
+.
 
 OptExternLinkage
-	: empty           << ir.LinkageNone, nil >>
-	| ExternLinkage
-;
+	= [ ExternLinkage ]
+.
 
 ExternLinkage
-	: "extern_weak"   << ir.LinkageExternWeak, nil >>
-	| "external"      << ir.LinkageExternal, nil >>
-;
+	= "extern_weak"
+	| "external"
+.
 
 // ref: ParseOptionalOperandBundles
 //
 //    ::= empty
-//    ::= '[' OperandBundle [, OperandBundle ]* ']'
+//    ::= "[" OperandBundle [, OperandBundle ]* "]"
 //
 //  OperandBundle
-//    ::= bundle-tag '(' ')'
-//    ::= bundle-tag '(' Type Value [, Type Value ]* ')'
+//    ::= bundle-tag "(" ")"
+//    ::= bundle-tag "(" Type Value [, Type Value ]* ")"
 //
 //  bundle-tag ::= String Constant
 
 OperandBundles
-	: empty
-	<< ([]*ir.OperandBundle)(nil), nil >>
-	| "[" OperandBundleList "]"
-	<< $1, nil >>
-;
+	= [ "[" OperandBundleList "]" ]
+.
 
 OperandBundleList
-	: OperandBundle
-	<< []*ir.OperandBundle{$0.(*ir.OperandBundle)}, nil >>
+	= OperandBundle
 	| OperandBundleList OperandBundle
-	<< append($0.([]*ir.OperandBundle), $1.(*ir.OperandBundle)), nil >>
-;
+.
 
 OperandBundle
-	: StringLit "(" TypeValues ")"
-	<< &ir.OperandBundle{Tag: $0.(string), Inputs: $2.([]value.Value)}, nil >>
-;
+	= StringLit "(" TypeValues ")"
+.
 
 OverflowFlags
-	: empty
-	<< ([]ir.OverflowFlag)(nil), nil >>
-	| OverflowFlagList
-;
+	= [ OverflowFlagList ]
+.
 
 OverflowFlagList
-	: OverflowFlag
-	<< []ir.OverflowFlag{$0.(ir.OverflowFlag)}, nil >>
+	= OverflowFlag
 	| OverflowFlagList OverflowFlag
-	<< append($0.([]ir.OverflowFlag), $1.(ir.OverflowFlag)), nil >>
-;
+.
 
 OverflowFlag
-	: "nsw"   << ir.OverflowFlagNSW, nil >>
-	| "nuw"   << ir.OverflowFlagNUW, nil >>
-;
+	= "nsw"
+	| "nuw"
+.
 
 // ___ [ Parameter Attribute ] _________________________________________________
 
 // ref: ParseOptionalParamAttrs
 
 ParamAttrs
-	: empty
-	<< ([]ir.ParamAttribute)(nil), nil >>
-	| ParamAttrList
-;
+	= [ ParamAttrList ]
+.
 
 ParamAttrList
-	: ParamAttr
-	<< []ir.ParamAttribute{$0.(ir.ParamAttribute)}, nil >>
+	= ParamAttr
 	| ParamAttrList ParamAttr
-	<< append($0.([]ir.ParamAttribute), $1.(ir.ParamAttribute)), nil >>
-;
+.
 
 // ref: ParseOptionalDerefAttrBytes
 //
 //   ::= empty
-//   ::= AttrKind '(' 4 ')'
+//   ::= AttrKind "(" 4 ")"
 
 ParamAttr
-	: Alignment
+	= Alignment
 	| Dereferenceable
-	| StringLit         << &ir.ParamAttrString{Value: $0.(string)}, nil >>
-	| "byval"           << ir.ParamAttrByval, nil >>
-	| "inalloca"        << ir.ParamAttrInAlloca, nil >>
-	| "inreg"           << ir.ParamAttrInReg, nil >>
-	| "nest"            << ir.ParamAttrNest, nil >>
-	| "noalias"         << ir.ParamAttrNoAlias, nil >>
-	| "nocapture"       << ir.ParamAttrNoCapture, nil >>
-	| "nonnull"         << ir.ParamAttrNonNull, nil >>
-	| "readnone"        << ir.ParamAttrReadNone, nil >>
-	| "readonly"        << ir.ParamAttrReadOnly, nil >>
-	| "returned"        << ir.ParamAttrReturned, nil >>
-	| "signext"         << ir.ParamAttrSignExt, nil >>
-	| "sret"            << ir.ParamAttrSRet, nil >>
-	| "swifterror"      << ir.ParamAttrSwiftError, nil >>
-	| "swiftself"       << ir.ParamAttrSwiftSelf, nil >>
-	| "writeonly"       << ir.ParamAttrWriteOnly, nil >>
-	| "zeroext"         << ir.ParamAttrZeroExt, nil >>
-;
+	| StringLit
+	| "byval"
+	| "inalloca"
+	| "inreg"
+	| "nest"
+	| "noalias"
+	| "nocapture"
+	| "nonnull"
+	| "readnone"
+	| "readonly"
+	| "returned"
+	| "signext"
+	| "sret"
+	| "swifterror"
+	| "swiftself"
+	| "writeonly"
+	| "zeroext"
+.
 
 // ref: ParseArgumentList
 //
-//   ::= '(' ArgTypeListI ')'
+//   ::= "(" ArgTypeListI ")"
 //  ArgTypeListI
 //   ::= empty
-//   ::= '...'
-//   ::= ArgTypeList ',' '...'
-//   ::= ArgType (',' ArgType)*
+//   ::= "..."
+//   ::= ArgTypeList "," "..."
+//   ::= ArgType ("," ArgType)*
 
 Params
-	: empty
-	<< &astx.Params{}, nil >>
-	| "..."
-	<< &astx.Params{Variadic: true}, nil >>
-	| ParamList
-	<< &astx.Params{Params: $0.([]*ir.Param)}, nil >>
-	| ParamList "," "..."
-	<< &astx.Params{Params: $0.([]*ir.Param), Variadic: true}, nil >>
-;
+	= [ ( "..." | ParamList | ParamList "," "..." ) ]
+.
 
 ParamList
-	: Param
-	<< []*ir.Param{$0.(*ir.Param)}, nil >>
+	= Param
 	| ParamList "," Param
-	<< append($0.([]*ir.Param), $2.(*ir.Param)), nil >>
-;
+.
 
 Param
-	: Type ParamAttrs
-	<< &ir.Param{Typ: $0.(types.Type), Attrs: $1.([]ir.ParamAttribute)}, nil >>
+	= Type ParamAttrs
 	| Type ParamAttrs LocalIdent
-	<< &ir.Param{Typ: $0.(types.Type), Name: astx.LocalIdent($2), Attrs: $1.([]ir.ParamAttribute)}, nil >>
-;
+.
 
 // https://llvm.org/docs/LangRef.html#runtime-preemption-model
 
 // ref: ParseOptionalDSOLocal
 
 OptPreemptionSpecifier
-	: empty                 << ir.PreemptionNone, nil >>
-	| PreemptionSpecifier
-;
+	= [ PreemptionSpecifier ]
+.
 
 PreemptionSpecifier
-	: "dso_local"         << ir.PreemptionDSOLocal, nil >>
-	| "dso_preemptable"   << ir.PreemptionDSOPreemptable, nil >>
-;
+	= "dso_local"
+	| "dso_preemptable"
+.
 
 // ___ [ Return Attribute ] __________________________________________________
 
 // ref: ParseOptionalReturnAttrs
 
 ReturnAttrs
-	: empty
-	<< ([]ir.ReturnAttribute)(nil), nil >>
-	| ReturnAttrList
-;
+	= [ ReturnAttrList ]
+.
 
 ReturnAttrList
-	: ReturnAttr
-	<< []ir.ReturnAttribute{$0.(ir.ReturnAttribute)}, nil >>
+	= ReturnAttr
 	| ReturnAttrList ReturnAttr
-	<< append($0.([]ir.ReturnAttribute), $1.(ir.ReturnAttribute)), nil >>
-;
+.
 
 ReturnAttr
-	: Alignment
+	= Alignment
 	| Dereferenceable
-	| StringLit         << &ir.ReturnAttrString{Value: $0.(string)}, nil >>
-	| "inreg"           << ir.ReturnAttrInReg, nil >>
-	| "noalias"         << ir.ReturnAttrNoAlias, nil >>
-	| "nonnull"         << ir.ReturnAttrNonNull, nil >>
-	| "signext"         << ir.ReturnAttrSignExt, nil >>
-	| "zeroext"         << ir.ReturnAttrZeroExt, nil >>
-;
+	| StringLit
+	| "inreg"
+	| "noalias"
+	| "nonnull"
+	| "signext"
+	| "zeroext"
+.
 
 OptSection
-	: empty
-	<< (*ir.Section)(nil), nil >>
-	| Section
-;
+	= [ Section ]
+.
 
 Section
-	: "section" StringLit
-	<< &ir.Section{Name: $1.(string)}, nil >>
-;
+	= "section" StringLit
+.
 
 // ref: ParseOptionalStackAlignment
 //
 //   ::= empty
-//   ::= 'alignstack' '(' 4 ')'
+//   ::= "alignstack" "(" 4 ")"
 StackAlignment
-	: "alignstack" "(" int_lit ")"
-	<< &ir.StackAlignment{Align: astx.Int($2)}, nil >>
-;
+	= "alignstack" "(" int_lit ")"
+.
 
 // ref: ParseScope
 //
 //   ::= syncscope("singlethread" | "<target scope>")?
 
 OptSyncScope
-	: empty
-	<< (*ir.SyncScope)(nil), nil >>
-	| "syncscope" "(" StringLit ")"
-	<< &ir.SyncScope{Scope: $2.(string)}, nil >>
-;
+	= [ "syncscope" "(" StringLit ")" ]
+.
 
 // ref: ParseOptionalThreadLocal
 //
 //   := empty
-//   := 'thread_local'
-//   := 'thread_local' '(' tlsmodel ')'
+//   := "thread_local"
+//   := "thread_local" "(" tlsmodel ")"
 
 OptThreadLocal
-	: empty
-	<< (*ir.ThreadLocal)(nil), nil >>
-	| ThreadLocal
-;
+	= [ ThreadLocal ]
+.
 
 ThreadLocal
-	: "thread_local"
-	<< &ir.ThreadLocal{}, nil >>
+	= "thread_local"
 	| "thread_local" "(" TLSModel ")"
-	<< &ir.ThreadLocal{Model: $2.(ir.TLSModel)}, nil >>
-;
+.
 
 // ref: ParseTLSModel
 //
-//   := 'localdynamic'
-//   := 'initialexec'
-//   := 'localexec'
+//   := "localdynamic"
+//   := "initialexec"
+//   := "localexec"
 
 TLSModel
-	: "initialexec"    << ir.TLSModelInitialExec, nil >>
-	| "localdynamic"   << ir.TLSModelLocalDynamic, nil >>
-	| "localexec"      << ir.TLSModelLocalExec, nil >>
-;
+	= "initialexec"
+	| "localdynamic"
+	| "localexec"
+.
 
 // ref: ParseOptionalUnnamedAddr
 
 OptUnnamedAddr
-	: empty         << ir.UnnamedAddrNone, nil >>
-	| UnnamedAddr
-;
+	= [ UnnamedAddr ]
+.
 
 UnnamedAddr
-	: "local_unnamed_addr"   << ir.UnnamedAddrLocalUnnamedAddr, nil >>
-	| "unnamed_addr"         << ir.UnnamedAddrUnnamedAddr, nil >>
-;
+	= "local_unnamed_addr"
+	| "unnamed_addr"
+.
 
 // https://llvm.org/docs/LangRef.html#visibility-styles
 
 // ref: ParseOptionalVisibility
 //
 //   ::= empty
-//   ::= 'default'
-//   ::= 'hidden'
-//   ::= 'protected'
+//   ::= "default"
+//   ::= "hidden"
+//   ::= "protected"
 
 OptVisibility
-	: empty        << ir.VisibilityNone, nil >>
-	| Visibility
-;
+	= [ Visibility ]
+.
 
 Visibility
-	: "default"     << ir.VisibilityDefault, nil >>
-	| "hidden"      << ir.VisibilityHidden, nil >>
-	| "protected"   << ir.VisibilityProtected, nil >>
-;
+	= "default"
+	| "hidden"
+	| "protected"
+.
 
 OptVolatile
-	: empty        << false, nil >>
-	| "volatile"   << true, nil >>
-;
+	= [ "volatile" ]
+.
 
