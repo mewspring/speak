@@ -1,5 +1,11 @@
-ident = "a" … "z" .
+lower = "a" … "z" .
+ident = { lower } .
 
-Start = { Var } .
+upper = "A" … "Z" .
+local = { upper } .
+
+Start = { Var | Foo } .
 
 Var = ident .
+
+Foo = local .
