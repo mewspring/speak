@@ -6,12 +6,6 @@
 
 *Standing on the sholders of dragons.*
 
-Speak is an experimental compiler construction playground. Inspired by [Gocc](https://github.com/goccmack/gocc), Speak generates lexers and parses from language grammars expressed in EBNF.
+Speak is an experimental compiler construction playground. Inspired by [Gocc](https://github.com/goccmack/gocc), [Participle](https://github.com/alecthomas/participle) and [ANTLR](http://www.antlr.org/), Speak parses input by runtime evaluation of language grammars expressed in EBNF.
 
 The name *Speak* is derived from the pronunciation of the Swedish word *spik*, in commemoration of my father Peter Eklind who worked with nail guns (or *spikpistoler* in Swedish) for the better part of his life.
-
-## Public domain
-
-The source code and any original content of this repository is hereby released into the [public domain].
-
-[public domain]: https://creativecommons.org/publicdomain/zero/1.0/
