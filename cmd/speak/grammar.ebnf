@@ -83,11 +83,17 @@ _quoted_string
 .
 */
 
+letter = "a" … "z" .
+
 global = "foo" .
 local = "bar" .
+label = "baz" letter .
+skip = " " .
 
-Module = { Global [ Local ] } .
+Module = { Global ( [ Local ] Label ) } .
 
 Global = global .
 
 Local = local .
+
+Label = label .

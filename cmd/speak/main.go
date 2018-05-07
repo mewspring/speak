@@ -4,6 +4,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/hex"
 	"flag"
 	"fmt"
 	"log"
@@ -22,6 +23,9 @@ var (
 	// dbg is a logger with the "speak:" prefix which logs debug messages to
 	// standard error.
 	dbg = log.New(os.Stderr, term.MagentaBold("speak:")+" ", 0)
+	// warn is a logger with the "speak:" prefix which logs warning messages to
+	// standard error.
+	warn = log.New(os.Stderr, term.RedBold("speak:")+" ", 0)
 )
 
 func usage() {
@@ -55,8 +59,17 @@ func main() {
 		start = first
 	}
 	dbg.Println("start:", start)
+	// Remove skip before validate.
+	skip, ok := grammar["skip"]
+	if ok {
+		delete(grammar, "skip")
+	}
 	if err := ebnf.Verify(grammar, start); err != nil {
 		log.Fatalf("%+v", errors.WithStack(err))
+	}
+	// Add skip after validate.
+	if ok {
+		grammar["skip"] = skip
 	}
 
 	// Parse input by runtime evaluation of the grammar.
@@ -79,8 +92,12 @@ func speak(grammar ebnf.Grammar, start string, input []byte) error {
 		input:   input,
 	}
 	ret := p.evalProd(p.grammar[start])
+	fmt.Println(hex.Dump(p.input[p.pos:]))
+	p.skip()
+	fmt.Println(hex.Dump(p.input[p.pos:]))
 	dbg.Println("speak:")
-	dbg.Printf("   ret: %v", ret)
+	dbg.Printf("   speak.ret: %v", ret)
+	dbg.Printf("   speak.len: %v %v", len(input), p.pos)
 	return nil
 }
 
@@ -94,47 +111,92 @@ type parser struct {
 	pos int
 	// End of input has been reached.
 	eof bool
+	// Currently skipping whitespace and comments in evalExpr.
+	skipping bool
+}
+
+// skip evaluates the skip production rule to ignore whitespace and comments.
+func (p *parser) skip() {
+	if p.skipping {
+		return
+	}
+	p.skipping = true
+	if skip, ok := p.grammar["skip"]; ok {
+		// record pos, and reset if no whitespace found.
+		bak := p.pos
+		fmt.Println("skip.bak:", bak)
+		for {
+			if !p.evalExpr(skip.Expr) {
+				// reset pos.
+				p.pos = bak
+				fmt.Println("skip.p.pos:", p.pos)
+				break
+			}
+		}
+	}
+	p.skipping = false
 }
 
 func (p *parser) evalProd(x *ebnf.Production) bool {
 	dbg.Println("evalProd:", exprString(x))
-	dbg.Printf("   name: %s", x.Name.String)
-	return p.evalExpr(x.Expr)
+	ret := p.evalExpr(x.Expr)
+	dbg.Printf("   evalProd.ret: %v", ret)
+	return ret
 }
 
 func (p *parser) evalExpr(x ebnf.Expression) bool {
 	dbg.Println("evalExpr:", exprString(x))
-	if p.eof {
-		return true
-	}
+	// skip whitespace and comments in between expressions.
+	p.skip()
 	switch x := x.(type) {
 	case *ebnf.Production:
 		panic(fmt.Errorf("support for expression %T not yet implemented", x))
 	case ebnf.Alternative:
-		return p.evalAlt(x)
+		ret := p.evalAlt(x)
+		dbg.Printf("   evalExpr.evalAlt.ret: %v", ret)
+		return ret
 	case ebnf.Sequence:
-		return p.evalSeq(x)
+		ret := p.evalSeq(x)
+		dbg.Printf("   evalExpr.evalSeq.ret: %v", ret)
+		return ret
 	case *ebnf.Name:
-		return p.evalName(x)
+		ret := p.evalName(x)
+		dbg.Printf("   evalExpr.evalName.ret: %v", ret)
+		return ret
 	case *ebnf.Token:
-		return p.evalToken(x)
+		ret := p.evalToken(x)
+		dbg.Printf("   evalExpr.evalToken.ret: %v", ret)
+		return ret
 	case *ebnf.Range:
-		return p.evalRange(x)
+		ret := p.evalRange(x)
+		dbg.Printf("   evalExpr.evalRange.ret: %v", ret)
+		return ret
 	case *ebnf.Group:
-		panic(fmt.Errorf("support for expression %T not yet implemented", x))
+		ret := p.evalGroup(x)
+		dbg.Printf("   evalExpr.evalGroup.ret: %v", ret)
+		return ret
 	case *ebnf.Option:
-		return p.evalOpt(x)
+		ret := p.evalOpt(x)
+		dbg.Printf("   evalExpr.evalOpt.ret: %v", ret)
+		return ret
 	case *ebnf.Repetition:
-		return p.evalRep(x)
+		ret := p.evalRep(x)
+		dbg.Printf("   evalExpr.evalRep.ret: %v", ret)
+		return ret
 	default:
 		panic(fmt.Errorf("support for expression %T not yet implemented", x))
 	}
 }
 
+// evalAlt evaluates a list of alternative expressions. One must be valid.
+//
+//    x | y | z
 func (p *parser) evalAlt(x ebnf.Alternative) bool {
 	dbg.Println("evalAlt:", exprString(x))
+	// TODO: Figure out how to try handle multiple valid alternatives. Is this
+	// even needed?
 	for _, e := range x {
-		// record pos, and reset if alternative mismatches.
+		// record pos, and reset for invalid alternatives.
 		bak := p.pos
 		if p.evalExpr(e) {
 			return true
@@ -145,6 +207,9 @@ func (p *parser) evalAlt(x ebnf.Alternative) bool {
 	return false
 }
 
+// evalSeq evaluates a list of sequential expressions. All must be valid.
+//
+//    x y z
 func (p *parser) evalSeq(x ebnf.Sequence) bool {
 	dbg.Println("evalSeq:", exprString(x))
 	for _, e := range x {
@@ -155,60 +220,107 @@ func (p *parser) evalSeq(x ebnf.Sequence) bool {
 	return true
 }
 
+// evalName evaluates a the expression of a production name. Must be valid.
+//
+//    foo
 func (p *parser) evalName(x *ebnf.Name) bool {
 	dbg.Println("evalName:", exprString(x))
 	prod := p.grammar[x.String]
 	return p.evalProd(prod)
 }
 
+// evalToken evaluates a literal. Must be valid.
+//
+//    "foo"
 func (p *parser) evalToken(x *ebnf.Token) bool {
 	dbg.Println("evalToken:", exprString(x))
 	for _, q := range x.String {
 		r := p.nextRune()
 		if r == eof {
+			if !p.skipping {
+				warn.Printf("unexpected EOF when evaluating token %v", exprString(x))
+			}
 			return false
 		}
 		if r != q {
+			if !p.skipping {
+				warn.Printf("   mismatch %q (expected %q)", r, q)
+			}
 			return false
 		}
+		dbg.Printf("   match %q", r)
 	}
 	return true
 }
 
+// evalRange evaluates a range of characters. Must be valid.
+//
+//    a … z
 func (p *parser) evalRange(x *ebnf.Range) bool {
 	dbg.Println("evalRange:", exprString(x))
-	f, _ := utf8.DecodeRuneInString(x.Begin.String)
-	t, _ := utf8.DecodeRuneInString(x.End.String)
+	from, _ := utf8.DecodeRuneInString(x.Begin.String)
+	to, _ := utf8.DecodeRuneInString(x.End.String)
 	r := p.nextRune()
 	if r == eof {
-		dbg.Println("   eof")
+		if !p.skipping {
+			warn.Printf("unexpected EOF when evaluating range %v", exprString(x))
+		}
 		return false
 	}
-	ret := f <= r && r <= t
-	dbg.Printf("   r: %c", r)
-	dbg.Printf("   from: %c", f)
-	dbg.Printf("   to: %c", t)
-	dbg.Printf("   ret: %v", ret)
+	ret := from <= r && r <= to
+	if ret {
+		dbg.Printf("   match: %q in %q … %q", r, from, to)
+	} else {
+		if !p.skipping {
+			warn.Printf("   mismatch: %q not in %q … %q", r, from, to)
+		}
+	}
 	return ret
 }
 
+// evalGroup evaluates a grouped expression. Must be valid.
+//
+//    ( body )
+func (p *parser) evalGroup(x *ebnf.Group) bool {
+	dbg.Println("evalGroup:", exprString(x))
+	return p.evalExpr(x.Body)
+}
+
+// evalOpt evaluates an optional expression. Must have zero or one valid
+// expressions.
+//
+//    [ body ]
 func (p *parser) evalOpt(x *ebnf.Option) bool {
 	dbg.Println("evalOpt:", exprString(x))
-	if p.eof {
-		return true
-	}
-	// store position and try to parse optional.
+	// store position and try to parse the optional.
 	bak := p.pos
-	if !p.evalExpr(x.Body) {
+	// EOF is valid in option
+	if !p.eof && !p.evalExpr(x.Body) {
+		// invalid body is valid in option
 		// reset position
 		p.pos = bak
 	}
 	return true
 }
 
+// evalRep evaluates a repeated expression. Must have zero or more valid
+// expressions.
+//
+//    { body }
 func (p *parser) evalRep(x *ebnf.Repetition) bool {
 	dbg.Println("evalRep:", exprString(x))
-	for !p.eof && p.evalExpr(x.Body) {
+	// EOF is valid in repetition
+	for !p.eof {
+		// store position and try to parse a repetition.
+		bak := p.pos
+		fmt.Println("bak:", bak)
+		if !p.evalExpr(x.Body) {
+			// invalid body is valid in repetition
+			// reset position
+			fmt.Println("p.pos:", p.pos)
+			p.pos = bak
+			break
+		}
 	}
 	return true
 }
@@ -245,7 +357,7 @@ func exprString(x ebnf.Expression) string {
 	case *ebnf.Range:
 		return fmt.Sprintf("%v … %v", exprString(x.Begin), exprString(x.End))
 	case *ebnf.Group:
-		panic(fmt.Errorf("support for expression %T not yet implemented", x))
+		return fmt.Sprintf("( %v )", exprString(x.Body))
 	case *ebnf.Option:
 		return fmt.Sprintf("[ %v ]", exprString(x.Body))
 	case *ebnf.Repetition:
