@@ -8,6 +8,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -23,10 +24,10 @@ import (
 var (
 	// dbg is a logger with the "speak:" prefix which logs debug messages to
 	// standard error.
-	dbg = log.New(os.Stderr, term.MagentaBold("speak:")+" ", 0)
+	dbg = log.New(ioutil.Discard, term.MagentaBold("speak:")+" ", 0)
 	// warn is a logger with the "speak:" prefix which logs warning messages to
 	// standard error.
-	warn = log.New(os.Stderr, term.RedBold("speak:")+" ", 0)
+	warn = log.New(ioutil.Discard, term.RedBold("speak:")+" ", 0)
 )
 
 func usage() {
@@ -52,12 +53,12 @@ func main() {
 	flag.Parse()
 
 	// Parse and validate grammar.
-	grammar, first, err := parseGrammar(grammarPath)
+	grammar, firstProd, err := parseGrammar(grammarPath)
 	if err != nil {
 		log.Fatalf("%+v", err)
 	}
 	if len(start) == 0 {
-		start = first
+		start = firstProd
 	}
 	dbg.Println("start:", start)
 	// Remove skip before validate.
@@ -93,6 +94,10 @@ func speak(grammar ebnf.Grammar, start string, input []byte) error {
 		grammar: grammar,
 		input:   input,
 	}
+	// Calculate first set.
+	//first := p.firstSet(grammar)
+	//pretty.Println("first:", first)
+	//return nil
 	ret := p.evalProd(p.grammar[start])
 	p.skip()
 	dbg.Println("speak:")
@@ -373,10 +378,12 @@ const eof rune = -1
 func (p *parser) nextRune() rune {
 	if p.pos >= len(p.input) {
 		p.eof = true
+		fmt.Println("eof")
 		return eof
 	}
 	r, size := utf8.DecodeRune(p.input[p.pos:])
 	p.pos += size
+	fmt.Println("pos:", p.pos, len(p.input))
 	return r
 }
 
@@ -394,20 +401,112 @@ func parseGrammar(grammarPath string) (ebnf.Grammar, string, error) {
 		return nil, "", errors.WithStack(err)
 	}
 	// Find first syntactic production rule by minimum file offset.
-	var first string
+	var firstProd string
 	min := -1
 	for name, prod := range grammar {
 		r, _ := utf8.DecodeRuneInString(name)
 		if unicode.IsUpper(r) {
 			off := prod.Name.Pos().Offset
 			if min == -1 || off < min {
-				first = name
+				firstProd = name
 				min = off
 			}
 		}
 	}
-	if len(first) == 0 {
+	if len(firstProd) == 0 {
 		return nil, "", errors.Errorf("unable to located first syntactic production rule (capital letter) in grammar %q", grammarPath)
 	}
-	return grammar, first, nil
+	return grammar, firstProd, nil
+}
+
+func (p *parser) firstSet(grammar ebnf.Grammar) map[string]map[rune]bool {
+	m := make(map[string]map[rune]bool)
+	for name, prod := range grammar {
+		m[name] = make(map[rune]bool)
+		p.firstProd(prod, m, name)
+	}
+	return m
+}
+
+func (p *parser) firstProd(x *ebnf.Production, m map[string]map[rune]bool, name string) bool {
+	return p.firstExpr(x.Expr, m, name)
+}
+
+func (p *parser) firstExpr(x ebnf.Expression, m map[string]map[rune]bool, name string) bool {
+	switch x := x.(type) {
+	case *ebnf.Production:
+		panic(fmt.Errorf("support for expression %T not yet implemented", x))
+	case ebnf.Alternative:
+		return p.firstAlt(x, m, name)
+	case ebnf.Sequence:
+		return p.firstSeq(x, m, name)
+	case *ebnf.Name:
+		return p.firstName(x, m, name)
+	case *ebnf.Token:
+		return p.firstToken(x, m, name)
+	case *ebnf.Range:
+		return p.firstRange(x, m, name)
+	case *ebnf.Group:
+		return p.firstGroup(x, m, name)
+	case *ebnf.Option:
+		return p.firstOpt(x, m, name)
+	case *ebnf.Repetition:
+		return p.firstRep(x, m, name)
+	default:
+		panic(fmt.Errorf("support for expression %T not yet implemented", x))
+	}
+}
+
+// the return value report whether the expression can be empty.
+func (p *parser) firstAlt(x ebnf.Alternative, m map[string]map[rune]bool, name string) bool {
+	empty := false
+	for _, e := range x {
+		if p.firstExpr(e, m, name) {
+			empty = true
+		}
+	}
+	return empty
+}
+
+func (p *parser) firstSeq(x ebnf.Sequence, m map[string]map[rune]bool, name string) bool {
+	empty := true
+	for _, e := range x {
+		if !p.firstExpr(e, m, name) {
+			empty = false
+		}
+	}
+	return empty
+}
+
+func (p *parser) firstName(x *ebnf.Name, m map[string]map[rune]bool, name string) bool {
+	return p.firstProd(p.grammar[x.String], m, name)
+}
+
+func (p *parser) firstToken(x *ebnf.Token, m map[string]map[rune]bool, name string) bool {
+	r, _ := utf8.DecodeRuneInString(x.String)
+	m[name][r] = true
+	return false
+}
+
+func (p *parser) firstRange(x *ebnf.Range, m map[string]map[rune]bool, name string) bool {
+	from, _ := utf8.DecodeRuneInString(x.Begin.String)
+	to, _ := utf8.DecodeRuneInString(x.End.String)
+	for r := from; r <= to; r++ {
+		m[name][r] = true
+	}
+	return false
+}
+
+func (p *parser) firstGroup(x *ebnf.Group, m map[string]map[rune]bool, name string) bool {
+	return p.firstExpr(x.Body, m, name)
+}
+
+func (p *parser) firstOpt(x *ebnf.Option, m map[string]map[rune]bool, name string) bool {
+	p.firstExpr(x.Body, m, name)
+	return true
+}
+
+func (p *parser) firstRep(x *ebnf.Repetition, m map[string]map[rune]bool, name string) bool {
+	p.firstExpr(x.Body, m, name)
+	return true
 }
